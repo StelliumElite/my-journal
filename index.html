@@ -214,7 +214,7 @@ select option{background:#0a0e16}
   <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
     <div>
       <div class="section-title">📊 Data Management</div>
-      <p class="text-[10px] text-gray-500">Import Fidelity Excel · Run Date | Action | Symbol | Price ($) | Quantity</p>
+      <p class="text-[10px] text-gray-500">Import Fidelity Excel · supports 5-col and 6-col formats · auto-detected</p>
     </div>
     <div class="flex gap-3 flex-wrap">
       <input type="file" id="fileInput" accept=".xls,.xlsx" style="display:none">
@@ -619,45 +619,55 @@ $('fileInput').addEventListener('change',async e=>{
   const file=e.target.files[0];if(!file)return;
   try{
     const wb=XLSX.read(await file.arrayBuffer());
-    // Use header:1 to get raw rows, then find the header row dynamically
     const ws=wb.Sheets[wb.SheetNames[0]];
+    // Always read as raw rows — handles both old (5-col) and new (6-col) Fidelity formats
     const raw=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
-    // Find the row containing "Run Date" as the header
+    // Find the header row — look for "Run Date" in any column
     let headerIdx=-1;
     for(let i=0;i<Math.min(raw.length,10);i++){
       if(raw[i].some(c=>String(c).trim()==='Run Date')){headerIdx=i;break;}
     }
-    let data;
-    if(headerIdx>=0){
-      const headers=raw[headerIdx].map(h=>String(h).trim());
-      data=raw.slice(headerIdx+1).map(row=>{
-        const obj={};
-        headers.forEach((h,i)=>{obj[h]=row[i]??'';});
-        return obj;
-      });
-    } else {
-      // Fallback: let SheetJS auto-detect headers
-      data=XLSX.utils.sheet_to_json(ws);
-    }
+    if(headerIdx<0){alert('Could not find header row with "Run Date" column.');return;}
+    const headers=raw[headerIdx].map(h=>String(h).trim());
+    const data=raw.slice(headerIdx+1).map(row=>{
+      const obj={};
+      headers.forEach((h,i)=>{obj[h]=row[i]??'';});
+      return obj;
+    });
     processImport(data,file.name);
   }catch(err){alert('Import failed: '+err.message);console.error(err);}
   e.target.value='';
 });
 
 function processImport(data,fileName){
+  // ─────────────────────────────────────────────────────────
+  // Supports BOTH Fidelity export formats:
+  //
+  // OLD (5-col):  Run Date | Action | Symbol | Price ($) | Quantity
+  // NEW (6-col):  Run Date | Action | Symbol | Description | Price ($) | Quantity
+  //
+  // Detection: if "Description" column present → new format
+  // Symbol col:   "-INTC260508C110"  (unique per strike = one position)
+  // Action field: "YOU BOUGHT OPENING TRANSACTION CALL (INTC) ..."
+  //               "YOU SOLD CLOSING TRANSACTION CALL (INTC) ..."
+  // Qty:          positive = buy, negative = sell
+  // ─────────────────────────────────────────────────────────
   const importId=Date.now().toString();
   const imported=[];
+  const hasDesc=data.length>0&&'Description' in data[0];
 
-  // Group all rows by their full option Symbol string (each unique symbol = one position/trade)
+  // Group all rows by full option Symbol (each unique symbol = one trade/position)
   const symGroups={};
   data.forEach(r=>{
     const action=(r['Action']||'').toString().trim();
     const sym=(r['Symbol']||'').toString().trim();
-    const price=parseFloat(r['Price ($)']||r['Price']||0);
+    // Price column name differs between formats — handle both
+    const priceRaw=hasDesc?r['Price ($)']:r['Price ($)']||r['Price'];
+    const price=parseFloat(priceRaw||0);
     const qty=parseFloat(r['Quantity']||0);
     const runDate=r['Run Date'];
     // Skip blank/disclaimer/header rows
-    if(!action||!sym||isNaN(price)||isNaN(qty))return;
+    if(!action||!sym||isNaN(price)||isNaN(qty)||qty===0)return;
     if(!action.includes('OPENING')&&!action.includes('CLOSING'))return;
     if(!symGroups[sym])symGroups[sym]={rows:[]};
     symGroups[sym].rows.push({action,sym,price,qty,runDate});
@@ -667,24 +677,30 @@ function processImport(data,fileName){
     const rows=grp.rows;
     if(!rows.length)return;
 
-    // Extract ticker from "(INTC)" pattern in the Action field
+    // Extract ticker from "(INTC)" in Action field
     const tickerMatch=rows[0].action.match(/\(([^)]+)\)/);
     const ticker=tickerMatch?tickerMatch[1]:sym.replace(/^-/,'').replace(/\d.*/,'');
 
-    // CALL or PUT
+    // CALL or PUT — check Action text; Symbol also contains C/P but Action is more reliable
     const ctype=rows[0].action.includes(' CALL ')?'CALL':'PUT';
 
-    // Parse Run Date — SheetJS may deliver a JS Date, string, or Excel serial number
+    // Parse Run Date — SheetJS may give JS Date, ISO string, or Excel serial
     let tradeDate;
     const rdRaw=rows[0].runDate;
-    if(rdRaw instanceof Date){tradeDate=rdRaw;}
-    else if(typeof rdRaw==='string'&&rdRaw.includes('/')){
-      const[mo,dy,yr]=rdRaw.split('/');tradeDate=new Date(parseInt(yr),parseInt(mo)-1,parseInt(dy));
-    }else if(typeof rdRaw==='string'&&rdRaw.length>0){tradeDate=new Date(rdRaw);}
-    else if(typeof rdRaw==='number'){tradeDate=new Date(Math.round((rdRaw-25569)*86400*1000));}
-    else{tradeDate=new Date();}
+    if(rdRaw instanceof Date){
+      tradeDate=rdRaw;
+    }else if(typeof rdRaw==='string'&&rdRaw.includes('/')){
+      const[mo,dy,yr]=rdRaw.split('/');
+      tradeDate=new Date(parseInt(yr),parseInt(mo)-1,parseInt(dy));
+    }else if(typeof rdRaw==='string'&&rdRaw.length>0){
+      tradeDate=new Date(rdRaw);
+    }else if(typeof rdRaw==='number'){
+      tradeDate=new Date(Math.round((rdRaw-25569)*86400*1000));
+    }else{
+      tradeDate=new Date();
+    }
 
-    // Store as local noon to prevent UTC day-shift bug in negative-offset timezones
+    // Store as local noon — prevents UTC midnight rolling back one day in negative-offset zones
     const fdNoon=new Date(tradeDate.getFullYear(),tradeDate.getMonth(),tradeDate.getDate(),12,0,0,0);
     const dayName=fullDayName(fdNoon);
 
@@ -692,25 +708,26 @@ function processImport(data,fileName){
     const buys=rows.filter(r=>r.action.includes('OPENING')&&r.qty>0);
     const sells=rows.filter(r=>r.action.includes('CLOSING')&&r.qty<0);
 
-    // VWAP entry price across all buy executions
+    // VWAP entry across all buy executions
     const totalBuyQty=buys.reduce((s,r)=>s+r.qty,0);
     const entryPrice=totalBuyQty>0
       ?buys.reduce((s,r)=>s+r.price*r.qty,0)/totalBuyQty
-      :(sells.length?sells[0].price:0); // fallback for orphan-sell rows
+      :(sells.length?sells[0].price:0); // fallback for orphan sells
 
     const totalSellQty=sells.reduce((s,r)=>s+Math.abs(r.qty),0);
     const totalQty=totalBuyQty||totalSellQty;
 
-    // Build closes array — one entry per individual sell execution row
+    // One close entry per sell execution row
     const closes=sells.map(r=>{
       const cq=Math.abs(r.qty);
-      return{qty:cq,exitPrice:r.price,exitTime:'--',pnl:((r.price-entryPrice)*100*cq).toFixed(2)};
+      return{qty:cq,exitPrice:r.price,exitTime:'--',
+             pnl:((r.price-entryPrice)*100*cq).toFixed(2)};
     });
 
     const realizedPnl=closes.reduce((s,c)=>s+parseFloat(c.pnl),0);
     const remainingQty=Math.max(0,totalBuyQty-totalSellQty);
 
-    // VWAP exit price
+    // VWAP exit
     const avgExit=totalSellQty>0
       ?sells.reduce((s,r)=>s+r.price*Math.abs(r.qty),0)/totalSellQty
       :0;
@@ -727,6 +744,11 @@ function processImport(data,fileName){
       timestamp:fdNoon.toISOString(),source:'imported',importId,
     });
   });
+
+  if(!imported.length){
+    alert('No valid trades found in this file.\nExpected Fidelity format with Run Date / Action / Symbol columns.');
+    return;
+  }
 
   const batchPnl=imported.reduce((s,t)=>s+parseFloat(t.realizedPnl||0),0);
   importBatches.push({importId,fileName,importDate:new Date().toISOString(),tradeCount:imported.length,pnl:batchPnl});
