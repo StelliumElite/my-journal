@@ -562,16 +562,14 @@ function localDateStr(d){
 function todayStr(){return localDateStr()}
 function tradeDate(t){return localDateStr(new Date(t.timestamp))}
 
+// isFrozen: controls EDIT and DELETE only — NEVER blocks the Close button
+// Past-day imported trades are locked (edit/delete) but open positions
+// can always be closed regardless of when the import occurred
 function isFrozen(t){
   if(t.source!=='imported') return false;
   const tradeDk=tradeDate(t);
   const todayDk=todayStr();
-  if(tradeDk===todayDk){
-    const now=new Date();
-    const mins=now.getHours()*60+now.getMinutes();
-    return mins>=23*60+55;
-  }
-  return tradeDk<todayDk;
+  return tradeDk < todayDk; // only past days are frozen
 }
 
 function dateKey(ts){return localDateStr(new Date(ts))}
@@ -596,15 +594,25 @@ function migrateTimestamps(){
   trades.forEach(t=>{
     if(!t.timestamp) return;
     const d=new Date(t.timestamp);
+    // Fix 1: UTC midnight timestamps → local noon (prevents day-shift)
     if(d.getUTCHours()===0&&d.getUTCMinutes()===0&&d.getUTCSeconds()===0){
+      // Extract UTC date parts (the INTENDED calendar date from Fidelity)
       const yr=d.getUTCFullYear(),mo=d.getUTCMonth(),dy=d.getUTCDate();
       const noon=new Date(yr,mo,dy,12,0,0,0);
       t.timestamp=noon.toISOString();
       t.day=fullDayName(noon);
       changed=true;
     }
+    // Fix 2: Correct any trades that already have wrong day names due to prior bug
+    // Re-derive day name from the stored timestamp's LOCAL date
+    const storedDate=new Date(t.timestamp);
+    const correctDay=fullDayName(storedDate);
+    if(t.day&&t.day!==correctDay&&t.source==='imported'){
+      t.day=correctDay;
+      changed=true;
+    }
   });
-  if(changed){save();console.log('[Stellium] Migrated timestamps')}
+  if(changed){save();console.log('[Stellium] Migrated timestamps and fixed day names')}
 }
 
 // ═══════════════════════════════════════════════════════
@@ -685,23 +693,34 @@ function processImport(data,fileName){
     const ctype=rows[0].action.includes(' CALL ')?'CALL':'PUT';
 
     // Parse Run Date — SheetJS may give JS Date, ISO string, or Excel serial
-    let tradeDate;
+    // CRITICAL: Fidelity exports dates as "2026-05-04 00:00:00" which is midnight UTC.
+    // In US timezones (UTC-4/5) this rolls back to May 3 locally → wrong day name.
+    // Fix: always extract year/month/day from the UTC parts of the parsed date,
+    // then rebuild as local noon so the day name and date string are always correct.
+    let yr, mo, dy;
     const rdRaw=rows[0].runDate;
     if(rdRaw instanceof Date){
-      tradeDate=rdRaw;
+      // SheetJS parsed it — use UTC parts to get the intended calendar date
+      yr=rdRaw.getUTCFullYear(); mo=rdRaw.getUTCMonth(); dy=rdRaw.getUTCDate();
     }else if(typeof rdRaw==='string'&&rdRaw.includes('/')){
-      const[mo,dy,yr]=rdRaw.split('/');
-      tradeDate=new Date(parseInt(yr),parseInt(mo)-1,parseInt(dy));
+      // "MM/DD/YYYY" string — parse directly as local
+      const[m,d,y]=rdRaw.split('/');
+      yr=parseInt(y); mo=parseInt(m)-1; dy=parseInt(d);
     }else if(typeof rdRaw==='string'&&rdRaw.length>0){
-      tradeDate=new Date(rdRaw);
+      // ISO string like "2026-05-04" or "2026-05-04 00:00:00" — parse UTC parts
+      const d=new Date(rdRaw);
+      yr=d.getUTCFullYear(); mo=d.getUTCMonth(); dy=d.getUTCDate();
     }else if(typeof rdRaw==='number'){
-      tradeDate=new Date(Math.round((rdRaw-25569)*86400*1000));
+      // Excel serial date
+      const d=new Date(Math.round((rdRaw-25569)*86400*1000));
+      yr=d.getUTCFullYear(); mo=d.getUTCMonth(); dy=d.getUTCDate();
     }else{
-      tradeDate=new Date();
+      const d=new Date(); yr=d.getFullYear(); mo=d.getMonth(); dy=d.getDate();
     }
 
-    // Store as local noon — prevents UTC midnight rolling back one day in negative-offset zones
-    const fdNoon=new Date(tradeDate.getFullYear(),tradeDate.getMonth(),tradeDate.getDate(),12,0,0,0);
+    // Store as LOCAL noon using the correct UTC-extracted date parts
+    // This ensures day name and date string are always right regardless of timezone
+    const fdNoon=new Date(yr,mo,dy,12,0,0,0);
     const dayName=fullDayName(fdNoon);
 
     // Split into buys (OPENING, qty > 0) and sells (CLOSING, qty < 0)
@@ -1178,9 +1197,9 @@ function appendRow(body,t,oi,indent=false){
     </td>
     <td style="text-align:center">
       <div style="display:flex;gap:4px;justify-content:center;flex-wrap:wrap">
-        ${t.remainingQty>0?`<button onclick="toggleClose(${oi})" class="btn btn-orange ${openClose.has(oi)?'lit':''}">📍</button>`:''}
-        <button onclick="toggleEdit(${oi})" class="btn btn-indigo">✏️</button>
-        ${!frozen?`<button onclick="delTrade(${oi})" style="background:transparent;border:none;cursor:pointer;color:#6b7280;font-size:14px;padding:4px" title="Delete">🗑️</button>`:`<span title="Frozen" style="opacity:.3;font-size:13px">🔒</span>`}
+        ${t.remainingQty>0?`<button onclick="toggleClose(${oi})" class="btn btn-orange ${openClose.has(oi)?'lit':''}" title="Close position">📍</button>`:''}
+        ${!frozen?`<button onclick="toggleEdit(${oi})" class="btn btn-indigo" title="Edit trade">✏️</button>`:''}
+        ${!frozen?`<button onclick="delTrade(${oi})" style="background:transparent;border:none;cursor:pointer;color:#6b7280;font-size:14px;padding:4px" title="Delete trade">🗑️</button>`:`<span title="Past-day import — edit/delete locked" style="opacity:.3;font-size:13px;cursor:default">🔒</span>`}
       </div>
     </td>`;
   body.appendChild(mr);
