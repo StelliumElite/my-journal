@@ -6,68 +6,205 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700;800;900&family=Inter:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700;800;900&family=Inter:wght@300;400;500;600;700;900&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
 <style>
+/* ═══════════════════════════════════════════════
+   VARIABLES & RESET
+═══════════════════════════════════════════════ */
 :root{
   --primary:#00FFCC;--secondary:#00D9FF;--accent:#FFD700;--purple:#a855f7;
   --bg:#03050a;--card:rgba(10,14,22,0.85);--border:rgba(0,255,204,0.12);
   --success:#22c55e;--danger:#ef4444;--warn:#f59e0b;
   --glow:0 0 40px rgba(0,255,204,0.15);
+  --noise-opacity:0.035;
+  --scanline-opacity:0.03;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
+
 body{
   background:var(--bg);color:#e2e8f0;
   font-family:'Inter',sans-serif;min-height:100vh;
   background-image:
     radial-gradient(ellipse 80% 50% at 50% -20%,rgba(0,255,204,0.06) 0%,transparent 60%),
     radial-gradient(ellipse 60% 40% at 80% 80%,rgba(168,85,247,0.04) 0%,transparent 50%);
+  cursor: default;
 }
-::-webkit-scrollbar{width:6px;height:6px}
-::-webkit-scrollbar-track{background:rgba(0,0,0,0.3)}
-::-webkit-scrollbar-thumb{background:rgba(0,255,204,0.25);border-radius:3px}
-::-webkit-scrollbar-thumb:hover{background:rgba(0,255,204,0.45)}
-.glass{background:var(--card);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:16px;transition:border-color .25s,box-shadow .25s;}
-.glass:hover{border-color:rgba(0,255,204,0.25);box-shadow:var(--glow)}
-.glass-dark{background:rgba(6,9,14,0.9);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.04);border-radius:14px}
-.ticker-band{background:linear-gradient(90deg,rgba(0,255,204,0.06),rgba(0,217,255,0.04),rgba(168,85,247,0.04));border-top:1px solid rgba(0,255,204,0.08);border-bottom:1px solid rgba(0,255,204,0.08);overflow:hidden;white-space:nowrap;}
+
+/* ═══ SCANLINE + NOISE OVERLAY ═══ */
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
+  background-image:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,255,204,var(--scanline-opacity)) 2px,rgba(0,255,204,var(--scanline-opacity)) 4px);
+  background-size:100% 4px;animation:scanlineMove 8s linear infinite;
+}
+@keyframes scanlineMove{0%{background-position:0 0}100%{background-position:0 100vh}}
+
+body::after{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:9997;
+  opacity:var(--noise-opacity);
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size:128px 128px;animation:noiseShift 0.4s steps(1) infinite;
+}
+@keyframes noiseShift{0%{background-position:0 0}25%{background-position:-32px 16px}50%{background-position:16px -32px}75%{background-position:-16px 32px}100%{background-position:32px -16px}}
+
+/* ═══ PARTICLE CANVAS ═══ */
+#particleCanvas{position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.55}
+
+/* ═══ SCROLLBAR ═══ */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:rgba(0,0,0,0.2)}
+::-webkit-scrollbar-thumb{background:rgba(0,255,204,0.2);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:rgba(0,255,204,0.4)}
+
+/* ═══ GLASS ═══ */
+.glass{
+  background:var(--card);backdrop-filter:blur(20px);
+  border:1px solid var(--border);border-radius:16px;
+  transition:border-color .3s,box-shadow .3s;
+  position:relative;overflow:hidden;
+}
+.glass::before{
+  content:'';position:absolute;inset:0;border-radius:inherit;
+  background:linear-gradient(135deg,rgba(0,255,204,0.03) 0%,transparent 60%);
+  pointer-events:none;
+}
+.glass:hover{border-color:rgba(0,255,204,0.28);box-shadow:var(--glow),0 0 0 1px rgba(0,255,204,0.04)}
+.glass-dark{background:rgba(6,9,14,0.95);backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,0.04);border-radius:14px}
+
+/* ═══ TICKER BAND ═══ */
+.ticker-band{
+  background:linear-gradient(90deg,rgba(0,255,204,0.06),rgba(0,217,255,0.04),rgba(168,85,247,0.04));
+  border-top:1px solid rgba(0,255,204,0.1);border-bottom:1px solid rgba(0,255,204,0.1);
+  overflow:hidden;white-space:nowrap;
+}
 .ticker-scroll{display:inline-block;animation:tickerMove 40s linear infinite}
 @keyframes tickerMove{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
-.stat-card{background:var(--card);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:14px;padding:18px 24px;text-align:center;position:relative;overflow:hidden;transition:all .3s;}
-.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--grad,linear-gradient(90deg,var(--primary),var(--secondary)));}
-.stat-card:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,255,204,0.12)}
+
+/* ═══ STAT CARDS — 3D TILT ═══ */
+.stat-card{
+  background:var(--card);backdrop-filter:blur(20px);
+  border:1px solid var(--border);border-radius:14px;
+  padding:18px 24px;text-align:center;position:relative;
+  overflow:hidden;transition:all .15s ease;
+  transform-style:preserve-3d;will-change:transform;
+  cursor:default;
+}
+.stat-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:var(--grad,linear-gradient(90deg,var(--primary),var(--secondary)));
+  z-index:1;
+}
+.stat-card::after{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(circle at var(--mx,50%) var(--my,50%),rgba(0,255,204,0.06) 0%,transparent 60%);
+  pointer-events:none;transition:opacity .3s;opacity:0;
+}
+.stat-card:hover::after{opacity:1}
+.stat-card .sparkline-wrap{position:absolute;bottom:0;left:0;right:0;height:36px;opacity:.35;pointer-events:none}
 .stat-val{font-size:2rem;font-weight:900;line-height:1.1;font-family:'JetBrains Mono',monospace;letter-spacing:-0.02em}
 .stat-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.15em;color:rgba(0,255,204,0.6);margin-bottom:6px}
 .stat-sub{font-size:11px;color:#6b7280;margin-top:4px;font-family:'JetBrains Mono',monospace}
-.metric-tab{padding:6px 14px;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;border-radius:8px;cursor:pointer;border:1px solid rgba(0,255,204,0.15);color:rgba(0,255,204,0.4);background:transparent;transition:all .2s;font-family:'JetBrains Mono',monospace;}
-.metric-tab.active{background:rgba(0,255,204,0.12);color:var(--primary);border-color:rgba(0,255,204,0.4);box-shadow:0 0 12px rgba(0,255,204,0.15)}
-.metric-tab:hover:not(.active){color:rgba(0,255,204,0.7);border-color:rgba(0,255,204,0.3)}
+
+/* ═══ METRIC TABS ═══ */
+.metric-tab{
+  padding:6px 14px;font-size:10px;font-weight:700;letter-spacing:.06em;
+  text-transform:uppercase;border-radius:8px;cursor:pointer;
+  border:1px solid rgba(0,255,204,0.15);color:rgba(0,255,204,0.4);
+  background:transparent;transition:all .2s;font-family:'JetBrains Mono',monospace;
+}
+.metric-tab.active,.metric-tab.on{
+  background:rgba(0,255,204,0.12);color:var(--primary);
+  border-color:rgba(0,255,204,0.4);box-shadow:0 0 12px rgba(0,255,204,0.15);
+}
+.metric-tab:hover:not(.active):not(.on){color:rgba(0,255,204,0.7);border-color:rgba(0,255,204,0.3)}
+
+/* ═══ KPI GRID ═══ */
 .kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
-.kpi-box{background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:12px 14px;transition:border-color .2s;}
-.kpi-box:hover{border-color:rgba(0,255,204,0.2)}
+.kpi-box{
+  background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.06);
+  border-radius:10px;padding:12px 14px;transition:all .2s;
+}
+.kpi-box:hover{border-color:rgba(0,255,204,0.2);background:rgba(0,255,204,0.03)}
 .kpi-box .kv{font-size:1.2rem;font-weight:900;font-family:'JetBrains Mono',monospace;line-height:1}
 .kpi-box .kl{font-size:9px;color:#6b7280;text-transform:uppercase;letter-spacing:.12em;margin-top:4px}
-label.field-lbl{display:block;font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.14em;color:rgba(0,255,204,0.7);margin-bottom:6px;}
-input,select{background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.08);color:#e2e8f0;padding:10px 12px;border-radius:8px;font-size:13px;width:100%;outline:none;transition:all .25s;font-family:'JetBrains Mono',monospace;}
-input:focus,select:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(0,255,204,0.08);background:rgba(0,0,0,0.7)}
+
+/* ═══ FORM FIELDS ═══ */
+label.field-lbl{
+  display:block;font-family:'JetBrains Mono',monospace;font-size:9px;
+  font-weight:700;text-transform:uppercase;letter-spacing:.14em;
+  color:rgba(0,255,204,0.7);margin-bottom:6px;
+}
+input,select{
+  background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.08);
+  color:#e2e8f0;padding:10px 12px;border-radius:8px;font-size:13px;
+  width:100%;outline:none;transition:all .25s;font-family:'JetBrains Mono',monospace;
+}
+input:focus,select:focus{
+  border-color:var(--primary);box-shadow:0 0 0 3px rgba(0,255,204,0.08);
+  background:rgba(0,0,0,0.7);
+}
 input.sm{padding:6px 8px;font-size:11px}
 select option{background:#0a0e16}
-.tg-group{display:flex;flex-wrap:wrap;gap:5px;background:rgba(0,0,0,0.4);padding:5px;border-radius:10px;border:1px solid rgba(255,255,255,0.06)}
-.tg-btn{flex:1;min-width:52px;text-align:center;padding:7px 5px;font-size:11px;font-weight:700;border-radius:6px;cursor:pointer;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);transition:all .18s;text-transform:uppercase;font-family:'JetBrains Mono',monospace;color:#6b7280;user-select:none;}
+
+/* ═══ TOGGLE BUTTONS ═══ */
+.tg-group{
+  display:flex;flex-wrap:wrap;gap:5px;background:rgba(0,0,0,0.4);
+  padding:5px;border-radius:10px;border:1px solid rgba(255,255,255,0.06);
+}
+.tg-btn{
+  flex:1;min-width:52px;text-align:center;padding:7px 5px;font-size:11px;
+  font-weight:700;border-radius:6px;cursor:pointer;
+  background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);
+  transition:all .18s;text-transform:uppercase;font-family:'JetBrains Mono',monospace;
+  color:#6b7280;user-select:none;
+}
 .tg-btn:hover{border-color:var(--bc,rgba(0,255,204,0.4));color:var(--bc,var(--primary));background:rgba(0,255,204,0.04)}
-.tg-btn.on{background:var(--bc,var(--primary))!important;color:#000!important;border-color:rgba(255,255,255,0.3)!important;box-shadow:0 0 14px var(--bc,var(--primary));font-weight:900}
+.tg-btn.on{
+  background:var(--bc,var(--primary))!important;color:#000!important;
+  border-color:rgba(255,255,255,0.3)!important;
+  box-shadow:0 0 14px var(--bc,var(--primary));font-weight:900;
+}
 .tg-btn.on[data-type="CALL"]{background:#22c55e!important}
 .tg-btn.on[data-type="PUT"]{background:#ef4444!important}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;font-family:'JetBrains Mono',monospace;font-weight:800;text-transform:uppercase;letter-spacing:.06em;cursor:pointer;border:none;border-radius:9px;transition:all .2s}
-.btn-cta{background:linear-gradient(135deg,var(--primary),var(--secondary));color:#000;padding:13px 28px;font-size:13px;letter-spacing:.1em}
+
+/* ═══ BUTTONS ═══ */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  font-family:'JetBrains Mono',monospace;font-weight:800;text-transform:uppercase;
+  letter-spacing:.06em;cursor:pointer;border:none;border-radius:9px;transition:all .2s;
+}
+.btn-cta{
+  background:linear-gradient(135deg,var(--primary),var(--secondary));
+  color:#000;padding:13px 28px;font-size:13px;letter-spacing:.1em;
+  position:relative;overflow:hidden;
+}
+.btn-cta::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,transparent 40%,rgba(255,255,255,0.15) 50%,transparent 60%);
+  transform:translateX(-100%);transition:transform .4s;
+}
 .btn-cta:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(0,255,204,0.35)}
-.btn-outline{background:rgba(255,215,0,0.06);border:1.5px solid var(--accent);color:var(--accent);padding:10px 20px;font-size:11px}
+.btn-cta:hover::after{transform:translateX(100%)}
+.btn-outline{
+  background:rgba(255,215,0,0.06);border:1.5px solid var(--accent);
+  color:var(--accent);padding:10px 20px;font-size:11px;
+}
 .btn-outline:hover{background:var(--accent);color:#000;transform:translateY(-1px)}
-.btn-ghost{background:transparent;border:1.5px solid rgba(255,255,255,0.12);color:#9ca3af;padding:8px 14px;font-size:10px}
+.btn-ghost{
+  background:transparent;border:1.5px solid rgba(255,255,255,0.12);
+  color:#9ca3af;padding:8px 14px;font-size:10px;
+}
 .btn-ghost:hover{border-color:var(--primary);color:var(--primary)}
-.btn-red{background:rgba(239,68,68,0.08);border:1.5px solid #ef4444;color:#ef4444;padding:8px 16px;font-size:10px}
+.btn-red{
+  background:rgba(239,68,68,0.08);border:1.5px solid #ef4444;
+  color:#ef4444;padding:8px 16px;font-size:10px;
+}
 .btn-red:hover{background:#ef4444;color:#fff}
-.btn-orange{background:linear-gradient(135deg,#f97316,#ea580c);color:#fff;padding:5px 11px;font-size:10px;border-radius:7px}
+.btn-orange{
+  background:linear-gradient(135deg,#f97316,#ea580c);
+  color:#fff;padding:5px 11px;font-size:10px;border-radius:7px;
+}
 .btn-orange:hover{transform:scale(1.04);box-shadow:0 4px 14px rgba(249,115,22,0.4)}
 .btn-orange.lit{background:linear-gradient(135deg,#ea580c,#c2410c);box-shadow:0 0 10px rgba(249,115,22,0.5)}
 .btn-indigo{background:linear-gradient(135deg,#6366f1,#4f46e5);color:#fff;padding:5px 11px;font-size:10px;border-radius:7px}
@@ -75,22 +212,49 @@ select option{background:#0a0e16}
 .btn-green-sm{background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;padding:5px 11px;font-size:10px;border-radius:6px}
 .btn-red-sm{background:transparent;border:1px solid #ef4444;color:#ef4444;padding:5px 11px;font-size:10px;border-radius:6px}
 .btn-red-sm:hover{background:#ef4444;color:#fff}
+
+/* ═══ TABLE ═══ */
 .tbl{width:100%;border-collapse:separate;border-spacing:0}
-.tbl thead th{background:rgba(6,9,14,0.95);color:var(--primary);font-family:'JetBrains Mono',monospace;font-weight:800;text-transform:uppercase;font-size:9px;letter-spacing:.1em;padding:13px 10px;text-align:left;border-bottom:1px solid rgba(0,255,204,0.2);position:sticky;top:0;z-index:10;white-space:nowrap;}
+.tbl thead th{
+  background:rgba(4,7,12,0.98);color:var(--primary);
+  font-family:'JetBrains Mono',monospace;font-weight:800;
+  text-transform:uppercase;font-size:9px;letter-spacing:.1em;
+  padding:13px 10px;text-align:left;
+  border-bottom:1px solid rgba(0,255,204,0.2);
+  position:sticky;top:0;z-index:10;white-space:nowrap;
+}
 .tbl thead th.sort{cursor:pointer;user-select:none}
-.tbl thead th.sort:hover{color:#fff;background:rgba(0,255,204,0.06)}
+.tbl thead th.sort:hover{color:#fff;background:rgba(0,255,204,0.05)}
 .si{display:inline-block;margin-left:3px;font-size:8px;opacity:.35}
 .si.asc,.si.desc{opacity:1;color:var(--primary)}
-.tbl tbody tr{border-bottom:1px solid rgba(255,255,255,0.04);transition:background .15s}
-.tbl tbody tr:hover{background:rgba(0,255,204,0.03)}
+.tbl tbody tr{
+  border-bottom:1px solid rgba(255,255,255,0.03);
+  transition:background .12s,transform .1s;
+  position:relative;
+}
+.tbl tbody tr:hover{background:rgba(0,255,204,0.025)}
+
+/* Row micro-action reveal */
+.tbl tbody tr .hidden-actions{
+  opacity:0;transform:translateX(8px);
+  transition:all .2s ease;pointer-events:none;
+}
+.tbl tbody tr:hover .hidden-actions{opacity:1;transform:translateX(0);pointer-events:all}
+
 .tbl tbody td{padding:11px 10px;font-size:11px;font-family:'JetBrains Mono',monospace}
 .row-close{background:rgba(249,115,22,0.05);border-left:3px solid #f97316}
 .row-edit{background:rgba(99,102,241,0.05);border-left:3px solid #6366f1}
-.row-group-day{background:rgba(0,255,204,0.04);border-top:1px solid rgba(0,255,204,0.15);cursor:pointer}
-.row-group-day:hover td{background:rgba(0,255,204,0.07)}
-.row-group-week{background:rgba(0,217,255,0.03);border-top:1px solid rgba(0,217,255,0.12);cursor:pointer}
-.row-group-month{background:rgba(255,215,0,0.04);border-top:2px solid rgba(255,215,0,0.2);cursor:pointer}
-.badge{display:inline-flex;align-items:center;gap:3px;padding:3px 9px;border-radius:20px;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;font-family:'JetBrains Mono',monospace}
+.row-group-day{background:rgba(0,255,204,0.03);border-top:1px solid rgba(0,255,204,0.12);cursor:pointer}
+.row-group-day:hover td{background:rgba(0,255,204,0.06)}
+.row-group-week{background:rgba(0,217,255,0.03);border-top:1px solid rgba(0,217,255,0.1);cursor:pointer}
+.row-group-month{background:rgba(255,215,0,0.03);border-top:2px solid rgba(255,215,0,0.18);cursor:pointer}
+
+/* ═══ BADGES ═══ */
+.badge{
+  display:inline-flex;align-items:center;gap:3px;padding:3px 9px;
+  border-radius:20px;font-size:9px;font-weight:800;text-transform:uppercase;
+  letter-spacing:.04em;font-family:'JetBrains Mono',monospace;
+}
 .b-imported{background:rgba(255,215,0,0.12);color:var(--accent);border:1px solid rgba(255,215,0,0.3)}
 .b-manual{background:rgba(0,217,255,0.1);color:var(--secondary);border:1px solid rgba(0,217,255,0.25)}
 .b-open{background:rgba(34,197,94,0.12);color:#4ade80;border:1px solid rgba(34,197,94,0.3);animation:pulse 2.5s ease infinite}
@@ -98,45 +262,496 @@ select option{background:#0a0e16}
 .b-closed{background:rgba(107,114,128,0.12);color:#9ca3af;border:1px solid rgba(107,114,128,0.2)}
 .b-frozen{background:rgba(96,165,250,0.1);color:#93c5fd;border:1px solid rgba(96,165,250,0.2);font-size:8px}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.65}}
-.vtog{padding:6px 13px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;border-radius:7px;cursor:pointer;border:1px solid rgba(0,255,204,0.15);color:rgba(0,255,204,0.4);background:transparent;transition:all .18s;font-family:'JetBrains Mono',monospace}
-.vtog.on{background:rgba(0,255,204,0.1);color:var(--primary);border-color:rgba(0,255,204,0.35);box-shadow:0 0 10px rgba(0,255,204,0.12)}
+
+/* ═══ VIEW TOGGLES ═══ */
+.vtog{
+  padding:6px 13px;font-size:10px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.05em;border-radius:7px;cursor:pointer;
+  border:1px solid rgba(0,255,204,0.15);color:rgba(0,255,204,0.4);
+  background:transparent;transition:all .18s;font-family:'JetBrains Mono',monospace;
+}
+.vtog.on{
+  background:rgba(0,255,204,0.1);color:var(--primary);
+  border-color:rgba(0,255,204,0.35);box-shadow:0 0 10px rgba(0,255,204,0.12);
+}
 .vtog:hover:not(.on){color:rgba(0,255,204,0.65);border-color:rgba(0,255,204,0.25)}
-.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.85);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;z-index:1000;animation:fi .25s ease}
-.modal-box{background:linear-gradient(145deg,#080c12,#050810);border:1.5px solid rgba(0,255,204,0.25);border-radius:18px;padding:36px;max-width:480px;width:92%;box-shadow:0 24px 80px rgba(0,255,204,0.18)}
+
+/* ═══ MODALS ═══ */
+.overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,0.88);
+  backdrop-filter:blur(10px);display:flex;align-items:center;
+  justify-content:center;z-index:1000;animation:fi .25s ease;
+}
+.modal-box{
+  background:linear-gradient(145deg,#080c12,#050810);
+  border:1.5px solid rgba(0,255,204,0.25);border-radius:18px;
+  padding:36px;max-width:480px;width:92%;
+  box-shadow:0 24px 80px rgba(0,255,204,0.18);
+}
 @keyframes fi{from{opacity:0}to{opacity:1}}
 @keyframes fadeInZ{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
+
+/* ═══ CHARTS ═══ */
 .ch-wrap{position:relative;height:260px}
 .ch-wrap-sm{position:relative;height:210px}
 .prog-bar{height:4px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden}
 .prog-fill{height:100%;border-radius:2px;transition:width .6s ease}
+
+/* ═══ SECTION TITLE ═══ */
 .glow-cyan{text-shadow:0 0 20px rgba(0,255,204,0.5)}
 .glow-gold{text-shadow:0 0 20px rgba(255,215,0,0.5)}
-.section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.15em;color:rgba(0,255,204,0.5);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.section-title{
+  font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.15em;
+  color:rgba(0,255,204,0.5);margin-bottom:12px;display:flex;align-items:center;gap:8px;
+}
 .section-title::after{content:'';flex:1;height:1px;background:rgba(0,255,204,0.08)}
+
+/* ═══ LOGO ═══ */
 .logo-star{display:inline-block;animation:spin 12s linear infinite;font-size:28px}
 @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 @keyframes profileSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 @keyframes symbolGlow{0%,100%{filter:drop-shadow(0 0 4px rgba(0,255,204,0.4))}50%{filter:drop-shadow(0 0 10px rgba(168,85,247,0.7))}}
-.pnl-pill{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:800;font-family:'JetBrains Mono',monospace}
+
+/* ═══ PNL PILL ═══ */
+.pnl-pill{
+  display:inline-flex;align-items:center;gap:4px;padding:2px 8px;
+  border-radius:10px;font-size:10px;font-weight:800;font-family:'JetBrains Mono',monospace;
+}
 .pnl-pill.pos{background:rgba(34,197,94,0.12);color:#4ade80;border:1px solid rgba(34,197,94,0.2)}
 .pnl-pill.neg{background:rgba(239,68,68,0.12);color:#f87171;border:1px solid rgba(239,68,68,0.2)}
+
+/* ═══ MANAGER CARDS ═══ */
 .imp-card{background:rgba(255,215,0,0.03);border:1px solid rgba(255,215,0,0.12);border-radius:10px;padding:12px 14px;margin-bottom:8px}
 .day-card{background:rgba(0,217,255,0.03);border:1px solid rgba(0,217,255,0.1);border-radius:10px;padding:10px 14px;margin-bottom:7px}
 .mgr-hdr{padding:16px 20px;border-bottom:1px solid rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none}
 .mgr-hdr:hover{background:rgba(255,215,0,0.03)}
-@media(max-width:768px){.stat-val{font-size:1.5rem}.hide-mob{display:none}}
+
+/* ═══════════════════════════════════════════════
+   ✦ UI ENHANCEMENT 1 — COMMAND PALETTE
+═══════════════════════════════════════════════ */
+#cmdPalette{
+  position:fixed;inset:0;z-index:9000;display:none;
+  align-items:flex-start;justify-content:center;
+  padding-top:15vh;
+  background:rgba(0,0,0,0.75);backdrop-filter:blur(18px);
+  animation:fi .18s ease;
+}
+#cmdPalette.open{display:flex}
+.cmd-box{
+  width:100%;max-width:560px;
+  background:linear-gradient(145deg,rgba(8,12,20,0.98),rgba(4,6,14,0.99));
+  border:1.5px solid rgba(0,255,204,0.3);border-radius:16px;
+  box-shadow:0 32px 80px rgba(0,0,0,0.7),0 0 60px rgba(0,255,204,0.08);
+  overflow:hidden;animation:fadeInZ .2s ease;
+}
+.cmd-input-wrap{
+  display:flex;align-items:center;gap:12px;
+  padding:16px 18px;border-bottom:1px solid rgba(0,255,204,0.1);
+}
+.cmd-input-icon{color:var(--primary);font-size:14px;opacity:.7}
+#cmdInput{
+  flex:1;background:transparent;border:none;
+  color:#fff;font-size:15px;font-family:'JetBrains Mono',monospace;
+  font-weight:500;letter-spacing:.02em;padding:0;
+  box-shadow:none!important;
+}
+#cmdInput::placeholder{color:#4b5563}
+.cmd-hint{
+  font-size:9px;color:#374151;font-family:'JetBrains Mono',monospace;
+  background:rgba(255,255,255,0.04);padding:3px 8px;border-radius:5px;
+  border:1px solid rgba(255,255,255,0.06);white-space:nowrap;
+}
+.cmd-results{max-height:360px;overflow-y:auto}
+.cmd-section{
+  padding:8px 16px 4px;font-size:8px;font-weight:800;
+  text-transform:uppercase;letter-spacing:.18em;
+  color:rgba(0,255,204,0.35);font-family:'JetBrains Mono',monospace;
+}
+.cmd-item{
+  display:flex;align-items:center;gap:12px;
+  padding:10px 16px;cursor:pointer;transition:background .12s;
+}
+.cmd-item:hover,.cmd-item.selected{background:rgba(0,255,204,0.07)}
+.cmd-item-icon{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;background:rgba(0,255,204,0.08);border:1px solid rgba(0,255,204,0.15)}
+.cmd-item-label{font-size:13px;color:#e2e8f0;font-weight:600;flex:1}
+.cmd-item-kbd{font-size:9px;color:#4b5563;font-family:'JetBrains Mono',monospace;background:rgba(255,255,255,0.05);padding:2px 6px;border-radius:4px;border:1px solid rgba(255,255,255,0.08)}
+.cmd-footer{
+  padding:10px 16px;border-top:1px solid rgba(255,255,255,0.04);
+  display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+}
+.cmd-foot-item{display:flex;align-items:center;gap:5px;font-size:9px;color:#374151;font-family:'JetBrains Mono',monospace}
+.cmd-foot-item kbd{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:4px;padding:1px 5px;color:#6b7280}
+
+/* ═══════════════════════════════════════════════
+   ✦ UI ENHANCEMENT 2 — TOAST NOTIFICATIONS
+═══════════════════════════════════════════════ */
+#toastContainer{
+  position:fixed;top:20px;right:20px;z-index:8999;
+  display:flex;flex-direction:column;gap:8px;pointer-events:none;
+}
+.toast{
+  display:flex;align-items:center;gap:10px;
+  padding:12px 18px;border-radius:12px;min-width:280px;max-width:380px;
+  pointer-events:all;
+  backdrop-filter:blur(20px);
+  border:1px solid;
+  animation:toastIn .3s cubic-bezier(.175,.885,.32,1.275);
+  font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;
+  box-shadow:0 8px 32px rgba(0,0,0,0.4);
+  cursor:pointer;
+  position:relative;overflow:hidden;
+}
+.toast::before{
+  content:'';position:absolute;bottom:0;left:0;height:2px;
+  width:100%;background:currentColor;opacity:.4;
+  animation:toastProgress var(--dur,3s) linear forwards;
+  transform-origin:left;
+}
+@keyframes toastProgress{from{transform:scaleX(1)}to{transform:scaleX(0)}}
+.toast.success{background:rgba(34,197,94,0.12);color:#4ade80;border-color:rgba(34,197,94,0.3)}
+.toast.error{background:rgba(239,68,68,0.12);color:#f87171;border-color:rgba(239,68,68,0.3)}
+.toast.info{background:rgba(0,217,255,0.1);color:var(--secondary);border-color:rgba(0,217,255,0.25)}
+.toast.warning{background:rgba(245,158,11,0.1);color:#fbbf24;border-color:rgba(245,158,11,0.25)}
+.toast.pnl-pos{background:rgba(0,255,204,0.08);color:var(--primary);border-color:rgba(0,255,204,0.25)}
+.toast.pnl-neg{background:rgba(239,68,68,0.08);color:#f87171;border-color:rgba(239,68,68,0.25)}
+@keyframes toastIn{from{opacity:0;transform:translateX(40px) scale(.9)}to{opacity:1;transform:translateX(0) scale(1)}}
+@keyframes toastOut{to{opacity:0;transform:translateX(50px) scale(.85)}}
+.toast.out{animation:toastOut .25s ease forwards}
+.toast-icon{font-size:16px;flex-shrink:0}
+.toast-body{flex:1}
+.toast-title{font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.08em}
+.toast-msg{font-size:10px;font-weight:500;opacity:.8;margin-top:2px}
+.toast-close{opacity:.4;font-size:14px;cursor:pointer;transition:opacity .15s;flex-shrink:0}
+.toast-close:hover{opacity:1}
+
+/* ═══════════════════════════════════════════════
+   ✦ UI ENHANCEMENT 3 — KEYBOARD SHORTCUT OVERLAY
+═══════════════════════════════════════════════ */
+#shortcutOverlay{
+  position:fixed;inset:0;z-index:8990;display:none;
+  align-items:center;justify-content:center;
+  background:rgba(0,0,0,0.85);backdrop-filter:blur(16px);
+  animation:fi .2s ease;
+}
+#shortcutOverlay.open{display:flex}
+.shortcut-box{
+  background:linear-gradient(145deg,#080c12,#04060e);
+  border:1.5px solid rgba(0,255,204,0.2);border-radius:20px;
+  padding:32px;max-width:680px;width:95%;max-height:85vh;overflow-y:auto;
+  box-shadow:0 40px 100px rgba(0,0,0,0.7),0 0 80px rgba(0,255,204,0.06);
+  animation:fadeInZ .25s ease;
+}
+.shortcut-header{
+  text-align:center;margin-bottom:28px;
+  padding-bottom:20px;border-bottom:1px solid rgba(0,255,204,0.1);
+}
+.shortcut-header h2{font-size:20px;font-weight:900;color:#fff;letter-spacing:-.02em}
+.shortcut-header p{font-size:11px;color:#6b7280;margin-top:4px;font-family:'JetBrains Mono',monospace}
+.shortcut-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.shortcut-group-title{
+  font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.2em;
+  color:rgba(0,255,204,0.45);margin-bottom:10px;padding-bottom:6px;
+  border-bottom:1px solid rgba(0,255,204,0.08);
+}
+.shortcut-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.03);
+}
+.shortcut-desc{font-size:12px;color:#9ca3af}
+.shortcut-keys{display:flex;gap:4px}
+.kbd{
+  font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:800;
+  background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);
+  border-bottom:2px solid rgba(255,255,255,0.2);
+  color:#e2e8f0;padding:3px 8px;border-radius:5px;
+}
+.kbd.special{background:rgba(0,255,204,0.08);border-color:rgba(0,255,204,0.2);border-bottom-color:rgba(0,255,204,0.35);color:var(--primary)}
+
+/* ═══════════════════════════════════════════════
+   ✦ UI ENHANCEMENT 4 — CONTEXT MENU
+═══════════════════════════════════════════════ */
+#contextMenu{
+  position:fixed;z-index:8000;display:none;
+  background:rgba(6,10,18,0.98);backdrop-filter:blur(20px);
+  border:1.5px solid rgba(0,255,204,0.2);border-radius:12px;
+  padding:6px;min-width:200px;
+  box-shadow:0 16px 48px rgba(0,0,0,0.6),0 0 30px rgba(0,255,204,0.06);
+  animation:fadeInZ .15s ease;
+}
+.ctx-item{
+  display:flex;align-items:center;gap:9px;
+  padding:9px 12px;border-radius:7px;cursor:pointer;
+  font-size:12px;font-family:'JetBrains Mono',monospace;
+  font-weight:700;color:#9ca3af;transition:all .12s;
+}
+.ctx-item:hover{background:rgba(0,255,204,0.07);color:#e2e8f0}
+.ctx-item.danger{color:#f87171}
+.ctx-item.danger:hover{background:rgba(239,68,68,0.1)}
+.ctx-item .ctx-icon{font-size:13px;width:20px;text-align:center}
+.ctx-item .ctx-kbd{margin-left:auto;font-size:9px;color:#374151}
+.ctx-divider{height:1px;background:rgba(255,255,255,0.05);margin:4px 0}
+.ctx-label{
+  padding:4px 12px;font-size:8px;font-weight:800;
+  text-transform:uppercase;letter-spacing:.18em;
+  color:rgba(0,255,204,0.3);font-family:'JetBrains Mono',monospace;
+}
+
+/* ═══════════════════════════════════════════════
+   ✦ UI ENHANCEMENT 5 — TRADING TAPE
+═══════════════════════════════════════════════ */
+#tradingTape{
+  position:fixed;bottom:0;left:0;right:0;z-index:900;
+  height:32px;
+  background:rgba(3,5,10,0.96);backdrop-filter:blur(10px);
+  border-top:1px solid rgba(0,255,204,0.08);
+  overflow:hidden;display:flex;align-items:center;
+}
+.tape-inner{
+  display:inline-flex;align-items:center;gap:0;
+  white-space:nowrap;
+  animation:tapeScroll 35s linear infinite;
+}
+.tape-inner:hover{animation-play-state:paused}
+.tape-item{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:0 18px;
+  font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;
+  border-right:1px solid rgba(255,255,255,0.04);
+}
+.tape-item .t-sym{color:#fff;font-weight:900}
+.tape-item .t-type{font-size:8px;padding:1px 5px;border-radius:4px;font-weight:900}
+.tape-item .t-call{background:rgba(34,197,94,0.15);color:#4ade80}
+.tape-item .t-put{background:rgba(239,68,68,0.15);color:#f87171}
+.tape-item .t-price{color:#6b7280}
+.tape-item .t-pnl{}
+.tape-item .t-pos{color:#4ade80}
+.tape-item .t-neg{color:#f87171}
+.tape-label{
+  flex-shrink:0;padding:0 14px;
+  font-family:'JetBrains Mono',monospace;font-size:8px;font-weight:900;
+  text-transform:uppercase;letter-spacing:.15em;color:var(--primary);
+  border-right:1px solid rgba(0,255,204,0.15);
+  display:flex;align-items:center;gap:6px;
+}
+.tape-dot{width:5px;height:5px;border-radius:50%;background:var(--primary);animation:pulse 1.5s ease infinite}
+@keyframes tapeScroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+
+/* ═══════════════════════════════════════════════
+   ✦ UI ENHANCEMENT 6 — HUD SIDEBAR
+═══════════════════════════════════════════════ */
+#hudSidebar{
+  position:fixed;right:0;top:50%;transform:translateY(-50%);
+  z-index:800;
+  background:rgba(4,7,14,0.95);backdrop-filter:blur(24px);
+  border:1px solid rgba(0,255,204,0.12);border-right:none;
+  border-radius:16px 0 0 16px;
+  padding:14px 12px;
+  display:flex;flex-direction:column;gap:10px;
+  width:160px;
+  transition:transform .35s cubic-bezier(.175,.885,.32,1.1),opacity .3s;
+}
+#hudSidebar.collapsed{transform:translateY(-50%) translateX(140px)}
+.hud-toggle{
+  position:absolute;left:-26px;top:50%;transform:translateY(-50%);
+  width:26px;height:40px;
+  background:rgba(4,7,14,0.95);border:1px solid rgba(0,255,204,0.12);border-right:none;
+  border-radius:8px 0 0 8px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:10px;color:var(--primary);
+  transition:background .2s;
+}
+.hud-toggle:hover{background:rgba(0,255,204,0.06)}
+.hud-title{
+  font-size:8px;font-weight:900;text-transform:uppercase;letter-spacing:.2em;
+  color:rgba(0,255,204,0.4);text-align:center;
+  padding-bottom:8px;border-bottom:1px solid rgba(0,255,204,0.08);
+}
+.hud-stat{padding:8px 6px;border-radius:8px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.04)}
+.hud-stat .hs-label{font-size:7px;font-weight:800;text-transform:uppercase;letter-spacing:.12em;color:#4b5563;margin-bottom:3px}
+.hud-stat .hs-val{font-size:13px;font-weight:900;font-family:'JetBrains Mono',monospace;line-height:1}
+.hud-spark{height:28px;position:relative;margin-top:4px}
+.hud-spark canvas{width:100%!important;height:28px!important}
+
+/* ═══════════════════════════════════════════════
+   MOBILE
+═══════════════════════════════════════════════ */
+@media(max-width:768px){
+  .stat-val{font-size:1.5rem}
+  .hide-mob{display:none}
+  #hudSidebar{display:none}
+  .shortcut-grid{grid-template-columns:1fr}
+}
+
+/* Main content z-index above canvas */
+.main-content{position:relative;z-index:1}
+
+/* Body padding for tape */
+body{padding-bottom:32px}
+
+/* ═══ CUSTOM CURSOR GLOW ═══ */
+.cursor-glow{
+  position:fixed;pointer-events:none;z-index:9999;
+  width:300px;height:300px;border-radius:50%;
+  background:radial-gradient(circle,rgba(0,255,204,0.04) 0%,transparent 70%);
+  transform:translate(-50%,-50%);transition:transform .1s linear;
+  mix-blend-mode:screen;
+}
 </style>
 </head>
+
 <body>
 
-<div class="ticker-band py-1.5">
+<!-- PARTICLE CANVAS -->
+<canvas id="particleCanvas"></canvas>
+
+<!-- CURSOR GLOW -->
+<div class="cursor-glow" id="cursorGlow"></div>
+
+<!-- TOAST CONTAINER -->
+<div id="toastContainer"></div>
+
+<!-- COMMAND PALETTE -->
+<div id="cmdPalette" onclick="closeCmdPalette(event)">
+  <div class="cmd-box" onclick="event.stopPropagation()">
+    <div class="cmd-input-wrap">
+      <span class="cmd-input-icon">⌘</span>
+      <input id="cmdInput" placeholder="Type a command or search trades…" autocomplete="off" spellcheck="false">
+      <span class="cmd-hint">ESC to close</span>
+    </div>
+    <div class="cmd-results" id="cmdResults"></div>
+    <div class="cmd-footer">
+      <div class="cmd-foot-item"><kbd>↑↓</kbd> Navigate</div>
+      <div class="cmd-foot-item"><kbd>↵</kbd> Run</div>
+      <div class="cmd-foot-item"><kbd>ESC</kbd> Close</div>
+      <div class="cmd-foot-item" style="margin-left:auto"><kbd>?</kbd> All shortcuts</div>
+    </div>
+  </div>
+</div>
+
+<!-- KEYBOARD SHORTCUT OVERLAY -->
+<div id="shortcutOverlay" onclick="closeShortcuts(event)">
+  <div class="shortcut-box" onclick="event.stopPropagation()">
+    <div class="shortcut-header">
+      <h2>⌨️ Keyboard Shortcuts</h2>
+      <p>Stellium Elite — Power User Reference</p>
+    </div>
+    <div class="shortcut-grid">
+      <div>
+        <div class="shortcut-group-title">Navigation</div>
+        <div class="shortcut-row"><span class="shortcut-desc">Command Palette</span><div class="shortcut-keys"><span class="kbd special">⌘</span><span class="kbd">K</span></div></div>
+        <div class="shortcut-row"><span class="shortcut-desc">Keyboard shortcuts</span><div class="shortcut-keys"><span class="kbd">?</span></div></div>
+        <div class="shortcut-row"><span class="shortcut-desc">Close overlay / modal</span><div class="shortcut-keys"><span class="kbd">ESC</span></div></div>
+        <div class="shortcut-row"><span class="shortcut-desc">Toggle HUD sidebar</span><div class="shortcut-keys"><span class="kbd special">⌘</span><span class="kbd">H</span></div></div>
+        <div class="shortcut-row"><span class="shortcut-desc">Toggle trading tape</span><div class="shortcut-keys"><span class="kbd special">⌘</span><span class="kbd">T</span></div></div>
+      </div>
+      <div>
+        <div class="shortcut-group-title">Data & Views</div>
+        <div class="shortcut-row"><span class="shortcut-desc">Import Excel</span><div class="shortcut-keys"><span class="kbd special">⌘</span><span class="kbd">I</span></div></div>
+        <div class="shortcut-row"><span class="shortcut-desc">Export</span><div class="shortcut-keys"><span class="kbd special">⌘</span><span class="kbd">E</span></div></div>
+        <div class="shortcut-row"><span class="shortcut-desc">Flat view</span><div class="shortcut-keys"><span class="kbd">1</span></div></div>
+        <div class="shortcut-row"><span class="shortcut-desc">Daily group view</span><div class="shortcut-keys"><span class="kbd">2</span></div></div>
+        <div class="shortcut-row"><span class="shortcut-desc">Weekly group view</span><div class="shortcut-keys"><span class="kbd">3</span></div></div>
+        <div class="shortcut-row"><span class="shortcut-desc">Monthly group view</span><div class="shortcut-keys"><span class="kbd">4</span></div></div>
+      </div>
+      <div>
+        <div class="shortcut-group-title">Chart Controls</div>
+        <div class="shortcut-row"><span class="shortcut-desc">Zoom image in</span><div class="shortcut-keys"><span class="kbd">+</span></div></div>
+        <div class="shortcut-row"><span class="shortcut-desc">Zoom image out</span><div class="shortcut-keys"><span class="kbd">−</span></div></div>
+        <div class="shortcut-row"><span class="shortcut-desc">Reset zoom</span><div class="shortcut-keys"><span class="kbd">0</span></div></div>
+        <div class="shortcut-row"><span class="shortcut-desc">Equity: All</span><div class="shortcut-keys"><span class="kbd">A</span></div></div>
+        <div class="shortcut-row"><span class="shortcut-desc">Equity: Month</span><div class="shortcut-keys"><span class="kbd">M</span></div></div>
+        <div class="shortcut-row"><span class="shortcut-desc">Equity: Week</span><div class="shortcut-keys"><span class="kbd">W</span></div></div>
+      </div>
+      <div>
+        <div class="shortcut-group-title">Metrics Period</div>
+        <div class="shortcut-row"><span class="shortcut-desc">Today's metrics</span><div class="shortcut-keys"><span class="kbd">D</span></div></div>
+        <div class="shortcut-row"><span class="shortcut-desc">Weekly metrics</span><div class="shortcut-keys"><span class="kbd">Shift</span><span class="kbd">W</span></div></div>
+        <div class="shortcut-row"><span class="shortcut-desc">Monthly metrics</span><div class="shortcut-keys"><span class="kbd">Shift</span><span class="kbd">M</span></div></div>
+        <div class="shortcut-row"><span class="shortcut-desc">Yearly metrics</span><div class="shortcut-keys"><span class="kbd">Y</span></div></div>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:24px;padding-top:20px;border-top:1px solid rgba(0,255,204,0.08)">
+      <button onclick="closeShortcuts()" style="background:transparent;border:1px solid rgba(255,255,255,0.1);color:#6b7280;padding:8px 24px;border-radius:8px;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;transition:all .2s" onmouseover="this.style.borderColor='rgba(0,255,204,0.3)';this.style.color='var(--primary)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.1)';this.style.color='#6b7280'">Close · ESC</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONTEXT MENU -->
+<div id="contextMenu">
+  <div class="ctx-label" id="ctxLabel">Trade Actions</div>
+  <div class="ctx-item" id="ctxClose" onclick="ctxAction('close')">
+    <span class="ctx-icon">📍</span>
+    <span>Close Position</span>
+    <span class="ctx-kbd">C</span>
+  </div>
+  <div class="ctx-item" id="ctxJournal" onclick="ctxAction('journal')">
+    <span class="ctx-icon">📓</span>
+    <span>Open Journal</span>
+    <span class="ctx-kbd">J</span>
+  </div>
+  <div class="ctx-item" id="ctxEdit" onclick="ctxAction('edit')">
+    <span class="ctx-icon">✏️</span>
+    <span>Edit Trade</span>
+    <span class="ctx-kbd">E</span>
+  </div>
+  <div class="ctx-divider"></div>
+  <div class="ctx-item danger" id="ctxDelete" onclick="ctxAction('delete')">
+    <span class="ctx-icon">🗑️</span>
+    <span>Delete Trade</span>
+    <span class="ctx-kbd">Del</span>
+  </div>
+</div>
+
+<!-- HUD SIDEBAR -->
+<div id="hudSidebar" class="collapsed">
+  <div class="hud-toggle" onclick="toggleHUD()" id="hudToggleBtn">◀</div>
+  <div class="hud-title">Live HUD</div>
+  <div class="hud-stat">
+    <div class="hs-label">Net P&L</div>
+    <div class="hs-val" id="hudNetPnl" style="color:var(--primary)">$0.00</div>
+    <div class="hud-spark"><canvas id="hudSparkNet"></canvas></div>
+  </div>
+  <div class="hud-stat">
+    <div class="hs-label">Today</div>
+    <div class="hs-val" id="hudTodayPnl" style="color:#FFD700">$0.00</div>
+  </div>
+  <div class="hud-stat">
+    <div class="hs-label">Win Rate</div>
+    <div class="hs-val" id="hudWR" style="color:#a855f7">0%</div>
+  </div>
+  <div class="hud-stat">
+    <div class="hs-label">Open</div>
+    <div class="hs-val" id="hudOpen" style="color:#4ade80">0</div>
+  </div>
+  <div style="margin-top:4px">
+    <button onclick="document.getElementById('fileInput').click()" style="width:100%;background:linear-gradient(135deg,rgba(0,255,204,0.1),rgba(0,217,255,0.05));border:1px solid rgba(0,255,204,0.2);color:var(--primary);padding:7px;border-radius:8px;cursor:pointer;font-size:9px;font-weight:900;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.1em;transition:all .2s" onmouseover="this.style.background='rgba(0,255,204,0.12)'" onmouseout="this.style.background='linear-gradient(135deg,rgba(0,255,204,0.1),rgba(0,217,255,0.05))'">📁 Import</button>
+  </div>
+</div>
+
+<!-- TRADING TAPE -->
+<div id="tradingTape">
+  <div class="tape-label">
+    <div class="tape-dot"></div>
+    TAPE
+  </div>
+  <div id="tapeInner" class="tape-inner"></div>
+</div>
+
+<!-- ═══ TICKER BAND ═══ -->
+<div class="ticker-band py-1.5" style="position:relative;z-index:2">
   <span class="ticker-scroll text-[10px] font-mono text-gray-500" id="tickerBand">
     ⬡ STELLIUM ELITE &nbsp;·&nbsp; OPTIONS EXECUTION TERMINAL &nbsp;·&nbsp; LIVE TRADING JOURNAL &nbsp;·&nbsp; PRECISION METRICS &nbsp;·&nbsp; RISK MANAGEMENT &nbsp;·&nbsp; STELLIUM ELITE &nbsp;·&nbsp; OPTIONS EXECUTION TERMINAL &nbsp;·&nbsp; LIVE TRADING JOURNAL &nbsp;·&nbsp; PRECISION METRICS &nbsp;·&nbsp; RISK MANAGEMENT &nbsp;·&nbsp;
   </span>
+  <!-- CMD palette hint -->
+  <div style="position:absolute;right:12px;top:50%;transform:translateY(-50%);display:flex;gap:6px;align-items:center">
+    <span onclick="openCmdPalette()" style="font-size:9px;color:rgba(0,255,204,0.35);font-family:'JetBrains Mono',monospace;cursor:pointer;background:rgba(0,255,204,0.06);border:1px solid rgba(0,255,204,0.12);padding:2px 8px;border-radius:5px;transition:all .2s;letter-spacing:.05em" onmouseover="this.style.color='var(--primary)';this.style.borderColor='rgba(0,255,204,0.3)'" onmouseout="this.style.color='rgba(0,255,204,0.35)';this.style.borderColor='rgba(0,255,204,0.12)'">⌘K Command</span>
+    <span onclick="openShortcuts()" style="font-size:9px;color:rgba(0,255,204,0.3);font-family:'JetBrains Mono',monospace;cursor:pointer;background:rgba(0,255,204,0.04);border:1px solid rgba(0,255,204,0.08);padding:2px 6px;border-radius:5px;transition:all .2s" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='rgba(0,255,204,0.3)'">?</span>
+  </div>
 </div>
 
-<div class="max-w-[1900px] mx-auto px-4 lg:px-8 py-6">
+<div class="max-w-[1900px] mx-auto px-4 lg:px-8 py-6 main-content">
 
+<!-- ═══ HEADER / PROFILE ═══ -->
 <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 gap-6">
   <div class="flex items-center gap-5">
     <div style="position:relative;flex-shrink:0">
@@ -175,33 +790,37 @@ select option{background:#0a0e16}
       </div>
     </div>
   </div>
+
+  <!-- STAT CARDS -->
   <div class="flex flex-wrap gap-3">
-    <div class="stat-card" style="--grad:linear-gradient(90deg,#00FFCC,#00D9FF);min-width:130px">
+    <div class="stat-card" style="--grad:linear-gradient(90deg,#00FFCC,#00D9FF);min-width:130px" data-tilt>
       <div class="stat-lbl">Net P&L</div>
       <div id="hNetPnl" class="stat-val text-[#00FFCC] glow-cyan">$0.00</div>
       <div id="hNetSub" class="stat-sub">All time</div>
+      <div class="sparkline-wrap"><canvas id="spkNetPnl"></canvas></div>
     </div>
-    <div class="stat-card" style="--grad:linear-gradient(90deg,#FFD700,#f59e0b);min-width:130px">
+    <div class="stat-card" style="--grad:linear-gradient(90deg,#FFD700,#f59e0b);min-width:130px" data-tilt>
       <div class="stat-lbl">Today's P&L</div>
       <div id="hTodayPnl" class="stat-val text-[#FFD700] glow-gold">$0.00</div>
       <div id="hTodaySub" class="stat-sub">0 trades today</div>
+      <div class="sparkline-wrap"><canvas id="spkToday"></canvas></div>
     </div>
-    <div class="stat-card" style="--grad:linear-gradient(90deg,#a855f7,#6366f1);min-width:120px">
+    <div class="stat-card" style="--grad:linear-gradient(90deg,#a855f7,#6366f1);min-width:120px" data-tilt>
       <div class="stat-lbl">Win Rate</div>
       <div id="hWinRate" class="stat-val" style="color:#a855f7">0%</div>
       <div id="hWRSub" class="stat-sub">0W · 0L</div>
     </div>
-    <div class="stat-card" style="--grad:linear-gradient(90deg,#22c55e,#16a34a);min-width:120px">
+    <div class="stat-card" style="--grad:linear-gradient(90deg,#22c55e,#16a34a);min-width:120px" data-tilt>
       <div class="stat-lbl">Open Contracts</div>
       <div id="hOpen" class="stat-val text-green-400">0</div>
       <div id="hOpenVal" class="stat-sub">$0 exposure</div>
     </div>
-    <div class="stat-card" style="--grad:linear-gradient(90deg,#00D9FF,#0ea5e9);min-width:120px">
+    <div class="stat-card" style="--grad:linear-gradient(90deg,#00D9FF,#0ea5e9);min-width:120px" data-tilt>
       <div class="stat-lbl">Total Trades</div>
       <div id="hTotal" class="stat-val text-[#00D9FF]">0</div>
       <div id="hTotalSub" class="stat-sub">0 closes</div>
     </div>
-    <div class="stat-card" style="--grad:linear-gradient(90deg,#f472b6,#ec4899);min-width:120px">
+    <div class="stat-card" style="--grad:linear-gradient(90deg,#f472b6,#ec4899);min-width:120px" data-tilt>
       <div class="stat-lbl">Profit Factor</div>
       <div id="hPF" class="stat-val" style="color:#f472b6">0.00</div>
       <div class="stat-sub">Gross W/L ratio</div>
@@ -214,7 +833,7 @@ select option{background:#0a0e16}
   <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
     <div>
       <div class="section-title">📊 Data Management</div>
-      <p class="text-[10px] text-gray-500">Import Fidelity Excel · supports 5-col and 6-col formats · auto-detected</p>
+      <p class="text-[10px] text-gray-500">Import Fidelity Excel · supports 5-col and 6-col formats · auto-detected <span style="color:rgba(0,255,204,0.3)">· ⌘I to import</span></p>
     </div>
     <div class="flex gap-3 flex-wrap">
       <input type="file" id="fileInput" accept=".xls,.xlsx" style="display:none">
@@ -430,7 +1049,7 @@ select option{background:#0a0e16}
   </div>
 </div>
 
-</div>
+</div><!-- /main-content -->
 
 <!-- SCREENSHOT ZOOM OVERLAY -->
 <div id="zoomOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.96);backdrop-filter:blur(12px);z-index:3000;align-items:center;justify-content:center;padding:20px;animation:fadeInZ .2s ease" onclick="closeZoom()">
@@ -562,14 +1181,11 @@ function localDateStr(d){
 function todayStr(){return localDateStr()}
 function tradeDate(t){return localDateStr(new Date(t.timestamp))}
 
-// isFrozen: controls EDIT and DELETE only — NEVER blocks the Close button
-// Past-day imported trades are locked (edit/delete) but open positions
-// can always be closed regardless of when the import occurred
 function isFrozen(t){
   if(t.source!=='imported') return false;
   const tradeDk=tradeDate(t);
   const todayDk=todayStr();
-  return tradeDk < todayDk; // only past days are frozen
+  return tradeDk < todayDk;
 }
 
 function dateKey(ts){return localDateStr(new Date(ts))}
@@ -594,17 +1210,13 @@ function migrateTimestamps(){
   trades.forEach(t=>{
     if(!t.timestamp) return;
     const d=new Date(t.timestamp);
-    // Fix 1: UTC midnight timestamps → local noon (prevents day-shift)
     if(d.getUTCHours()===0&&d.getUTCMinutes()===0&&d.getUTCSeconds()===0){
-      // Extract UTC date parts (the INTENDED calendar date from Fidelity)
       const yr=d.getUTCFullYear(),mo=d.getUTCMonth(),dy=d.getUTCDate();
       const noon=new Date(yr,mo,dy,12,0,0,0);
       t.timestamp=noon.toISOString();
       t.day=fullDayName(noon);
       changed=true;
     }
-    // Fix 2: Correct any trades that already have wrong day names due to prior bug
-    // Re-derive day name from the stored timestamp's LOCAL date
     const storedDate=new Date(t.timestamp);
     const correctDay=fullDayName(storedDate);
     if(t.day&&t.day!==correctDay&&t.source==='imported'){
@@ -616,65 +1228,38 @@ function migrateTimestamps(){
 }
 
 // ═══════════════════════════════════════════════════════
-//  IMPORT — Fidelity Format
-//  Columns: Run Date | Action | Symbol | Price ($) | Quantity
-//  Action:  "YOU BOUGHT OPENING TRANSACTION CALL (INTC) INTEL CORP COM MAY 08 26 $110"
-//           "YOU SOLD CLOSING TRANSACTION CALL (INTC) INTEL CORP COM MAY 08 26 $110"
-//  Symbol:  "-INTC260508C110"  (unique per strike = one position)
-//  Qty:     positive for buys, NEGATIVE for sells
+//  IMPORT
 // ═══════════════════════════════════════════════════════
 $('fileInput').addEventListener('change',async e=>{
   const file=e.target.files[0];if(!file)return;
   try{
     const wb=XLSX.read(await file.arrayBuffer());
     const ws=wb.Sheets[wb.SheetNames[0]];
-    // Always read as raw rows — handles both old (5-col) and new (6-col) Fidelity formats
     const raw=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
-    // Find the header row — look for "Run Date" in any column
     let headerIdx=-1;
     for(let i=0;i<Math.min(raw.length,10);i++){
       if(raw[i].some(c=>String(c).trim()==='Run Date')){headerIdx=i;break;}
     }
-    if(headerIdx<0){alert('Could not find header row with "Run Date" column.');return;}
+    if(headerIdx<0){showToast('error','Import Failed','Could not find "Run Date" header row.');return;}
     const headers=raw[headerIdx].map(h=>String(h).trim());
-    const data=raw.slice(headerIdx+1).map(row=>{
-      const obj={};
-      headers.forEach((h,i)=>{obj[h]=row[i]??'';});
-      return obj;
-    });
+    const data=raw.slice(headerIdx+1).map(row=>{const obj={};headers.forEach((h,i)=>{obj[h]=row[i]??'';});return obj;});
     processImport(data,file.name);
-  }catch(err){alert('Import failed: '+err.message);console.error(err);}
+  }catch(err){showToast('error','Import Error',err.message);console.error(err);}
   e.target.value='';
 });
 
 function processImport(data,fileName){
-  // ─────────────────────────────────────────────────────────
-  // Supports BOTH Fidelity export formats:
-  //
-  // OLD (5-col):  Run Date | Action | Symbol | Price ($) | Quantity
-  // NEW (6-col):  Run Date | Action | Symbol | Description | Price ($) | Quantity
-  //
-  // Detection: if "Description" column present → new format
-  // Symbol col:   "-INTC260508C110"  (unique per strike = one position)
-  // Action field: "YOU BOUGHT OPENING TRANSACTION CALL (INTC) ..."
-  //               "YOU SOLD CLOSING TRANSACTION CALL (INTC) ..."
-  // Qty:          positive = buy, negative = sell
-  // ─────────────────────────────────────────────────────────
   const importId=Date.now().toString();
   const imported=[];
   const hasDesc=data.length>0&&'Description' in data[0];
-
-  // Group all rows by full option Symbol (each unique symbol = one trade/position)
   const symGroups={};
   data.forEach(r=>{
     const action=(r['Action']||'').toString().trim();
     const sym=(r['Symbol']||'').toString().trim();
-    // Price column name differs between formats — handle both
     const priceRaw=hasDesc?r['Price ($)']:r['Price ($)']||r['Price'];
     const price=parseFloat(priceRaw||0);
     const qty=parseFloat(r['Quantity']||0);
     const runDate=r['Run Date'];
-    // Skip blank/disclaimer/header rows
     if(!action||!sym||isNaN(price)||isNaN(qty)||qty===0)return;
     if(!action.includes('OPENING')&&!action.includes('CLOSING'))return;
     if(!symGroups[sym])symGroups[sym]={rows:[]};
@@ -682,97 +1267,40 @@ function processImport(data,fileName){
   });
 
   Object.entries(symGroups).forEach(([sym,grp])=>{
-    const rows=grp.rows;
-    if(!rows.length)return;
-
-    // Extract ticker from "(INTC)" in Action field
+    const rows=grp.rows;if(!rows.length)return;
     const tickerMatch=rows[0].action.match(/\(([^)]+)\)/);
     const ticker=tickerMatch?tickerMatch[1]:sym.replace(/^-/,'').replace(/\d.*/,'');
-
-    // CALL or PUT — check Action text; Symbol also contains C/P but Action is more reliable
     const ctype=rows[0].action.includes(' CALL ')?'CALL':'PUT';
-
-    // Parse Run Date — SheetJS may give JS Date, ISO string, or Excel serial
-    // CRITICAL: Fidelity exports dates as "2026-05-04 00:00:00" which is midnight UTC.
-    // In US timezones (UTC-4/5) this rolls back to May 3 locally → wrong day name.
-    // Fix: always extract year/month/day from the UTC parts of the parsed date,
-    // then rebuild as local noon so the day name and date string are always correct.
-    let yr, mo, dy;
+    let yr,mo,dy;
     const rdRaw=rows[0].runDate;
-    if(rdRaw instanceof Date){
-      // SheetJS parsed it — use UTC parts to get the intended calendar date
-      yr=rdRaw.getUTCFullYear(); mo=rdRaw.getUTCMonth(); dy=rdRaw.getUTCDate();
-    }else if(typeof rdRaw==='string'&&rdRaw.includes('/')){
-      // "MM/DD/YYYY" string — parse directly as local
-      const[m,d,y]=rdRaw.split('/');
-      yr=parseInt(y); mo=parseInt(m)-1; dy=parseInt(d);
-    }else if(typeof rdRaw==='string'&&rdRaw.length>0){
-      // ISO string like "2026-05-04" or "2026-05-04 00:00:00" — parse UTC parts
-      const d=new Date(rdRaw);
-      yr=d.getUTCFullYear(); mo=d.getUTCMonth(); dy=d.getUTCDate();
-    }else if(typeof rdRaw==='number'){
-      // Excel serial date
-      const d=new Date(Math.round((rdRaw-25569)*86400*1000));
-      yr=d.getUTCFullYear(); mo=d.getUTCMonth(); dy=d.getUTCDate();
-    }else{
-      const d=new Date(); yr=d.getFullYear(); mo=d.getMonth(); dy=d.getDate();
-    }
-
-    // Store as LOCAL noon using the correct UTC-extracted date parts
-    // This ensures day name and date string are always right regardless of timezone
+    if(rdRaw instanceof Date){yr=rdRaw.getUTCFullYear();mo=rdRaw.getUTCMonth();dy=rdRaw.getUTCDate();}
+    else if(typeof rdRaw==='string'&&rdRaw.includes('/')){const[m,d,y]=rdRaw.split('/');yr=parseInt(y);mo=parseInt(m)-1;dy=parseInt(d);}
+    else if(typeof rdRaw==='string'&&rdRaw.length>0){const d=new Date(rdRaw);yr=d.getUTCFullYear();mo=d.getUTCMonth();dy=d.getUTCDate();}
+    else if(typeof rdRaw==='number'){const d=new Date(Math.round((rdRaw-25569)*86400*1000));yr=d.getUTCFullYear();mo=d.getUTCMonth();dy=d.getUTCDate();}
+    else{const d=new Date();yr=d.getFullYear();mo=d.getMonth();dy=d.getDate();}
     const fdNoon=new Date(yr,mo,dy,12,0,0,0);
     const dayName=fullDayName(fdNoon);
-
-    // Split into buys (OPENING, qty > 0) and sells (CLOSING, qty < 0)
     const buys=rows.filter(r=>r.action.includes('OPENING')&&r.qty>0);
     const sells=rows.filter(r=>r.action.includes('CLOSING')&&r.qty<0);
-
-    // VWAP entry across all buy executions
     const totalBuyQty=buys.reduce((s,r)=>s+r.qty,0);
-    const entryPrice=totalBuyQty>0
-      ?buys.reduce((s,r)=>s+r.price*r.qty,0)/totalBuyQty
-      :(sells.length?sells[0].price:0); // fallback for orphan sells
-
+    const entryPrice=totalBuyQty>0?buys.reduce((s,r)=>s+r.price*r.qty,0)/totalBuyQty:(sells.length?sells[0].price:0);
     const totalSellQty=sells.reduce((s,r)=>s+Math.abs(r.qty),0);
     const totalQty=totalBuyQty||totalSellQty;
-
-    // One close entry per sell execution row
-    const closes=sells.map(r=>{
-      const cq=Math.abs(r.qty);
-      return{qty:cq,exitPrice:r.price,exitTime:'--',
-             pnl:((r.price-entryPrice)*100*cq).toFixed(2)};
-    });
-
+    const closes=sells.map(r=>{const cq=Math.abs(r.qty);return{qty:cq,exitPrice:r.price,exitTime:'--',pnl:((r.price-entryPrice)*100*cq).toFixed(2)};});
     const realizedPnl=closes.reduce((s,c)=>s+parseFloat(c.pnl),0);
     const remainingQty=Math.max(0,totalBuyQty-totalSellQty);
-
-    // VWAP exit
-    const avgExit=totalSellQty>0
-      ?sells.reduce((s,r)=>s+r.price*Math.abs(r.qty),0)/totalSellQty
-      :0;
-
+    const avgExit=totalSellQty>0?sells.reduce((s,r)=>s+r.price*Math.abs(r.qty),0)/totalSellQty:0;
     const status=remainingQty===0?'CLOSED':remainingQty===totalQty?'OPEN':'PARTIAL';
-
-    imported.push({
-      id:genId(),stock:ticker,fullSymbol:sym,option:ctype,day:dayName,
-      totalQty,remainingQty,
-      entry:parseFloat(entryPrice.toFixed(4)),
-      avgExit:parseFloat(avgExit.toFixed(4)),
-      status,entryTime:'--',setups:['Imported'],closes,
-      realizedPnl:parseFloat(realizedPnl.toFixed(2)),
-      timestamp:fdNoon.toISOString(),source:'imported',importId,
-    });
+    imported.push({id:genId(),stock:ticker,fullSymbol:sym,option:ctype,day:dayName,totalQty,remainingQty,entry:parseFloat(entryPrice.toFixed(4)),avgExit:parseFloat(avgExit.toFixed(4)),status,entryTime:'--',setups:['Imported'],closes,realizedPnl:parseFloat(realizedPnl.toFixed(2)),timestamp:fdNoon.toISOString(),source:'imported',importId});
   });
 
-  if(!imported.length){
-    alert('No valid trades found in this file.\nExpected Fidelity format with Run Date / Action / Symbol columns.');
-    return;
-  }
-
+  if(!imported.length){showToast('warning','No Trades','No valid trades found in this file.');return;}
   const batchPnl=imported.reduce((s,t)=>s+parseFloat(t.realizedPnl||0),0);
   importBatches.push({importId,fileName,importDate:new Date().toISOString(),tradeCount:imported.length,pnl:batchPnl});
   trades=[...imported,...trades];
   save();render();
+  showToast('success','Import Complete',`${imported.length} trades loaded from ${fileName}`);
+  updateTape();
 }
 
 // ═══════════════════════════════════════════════════════
@@ -789,20 +1317,20 @@ function showDelBatch(importId){
   const b=importBatches.find(x=>x.importId===importId);if(!b)return;
   const cnt=trades.filter(t=>t.importId===importId).length;
   showDel(`<p class="mb-1">Delete import file:</p><p class="text-[#FFD700] font-bold mb-3">${b.fileName}</p><p class="text-[11px] text-gray-400">Permanently removes <strong class="text-[#00FFCC]">${cnt} trade entries</strong>.</p>`,
-    ()=>{trades=trades.filter(t=>t.importId!==importId);importBatches=importBatches.filter(x=>x.importId!==importId);save();render()},'🗑️ Delete Import');
+    ()=>{trades=trades.filter(t=>t.importId!==importId);importBatches=importBatches.filter(x=>x.importId!==importId);save();render();showToast('info','Deleted',`Import "${b.fileName}" removed.`);},'🗑️ Delete Import');
 }
 function showDelDay(dk){
   const cnt=trades.filter(t=>tradeDate(t)===dk).length;
   const lbl=new Date(dk+'T12:00:00').toLocaleDateString([],{weekday:'long',year:'numeric',month:'long',day:'numeric'});
   showDel(`<p class="mb-1">Delete all trades for:</p><p class="text-[#00D9FF] font-bold mb-3">${lbl}</p><p class="text-[11px] text-gray-400">Permanently removes <strong class="text-[#00FFCC]">${cnt} entries</strong> (all sources).</p>`,
-    ()=>{trades=trades.filter(t=>tradeDate(t)!==dk);importBatches=importBatches.map(b=>{const rem=trades.filter(t=>t.importId===b.importId);return rem.length?{...b,tradeCount:rem.length,pnl:rem.reduce((s,t)=>s+parseFloat(t.realizedPnl||0),0)}:null}).filter(Boolean);save();render()},'🗑️ Delete Day');
+    ()=>{trades=trades.filter(t=>tradeDate(t)!==dk);importBatches=importBatches.map(b=>{const rem=trades.filter(t=>t.importId===b.importId);return rem.length?{...b,tradeCount:rem.length,pnl:rem.reduce((s,t)=>s+parseFloat(t.realizedPnl||0),0)}:null}).filter(Boolean);save();render();showToast('info','Deleted',`Trades for ${lbl} removed.`);},'🗑️ Delete Day');
 }
 
 // ═══════════════════════════════════════════════════════
 //  EXPORT
 // ═══════════════════════════════════════════════════════
 function exportToExcel(){
-  if(!trades.length){alert('No trades');return}
+  if(!trades.length){showToast('warning','No Trades','Nothing to export.');return}
   const rows=[];
   trades.forEach(t=>{
     if(t.closes&&t.closes.length){
@@ -814,14 +1342,16 @@ function exportToExcel(){
   const ws=XLSX.utils.json_to_sheet(rows);const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,ws,'Trades');
   XLSX.writeFile(wb,`Stellium_Export_${new Date().toISOString().slice(0,10)}.xlsx`);
+  showToast('success','Exported',`${rows.length} rows saved to Excel.`);
 }
 
 // ═══════════════════════════════════════════════════════
 //  CHARTS INIT
 // ═══════════════════════════════════════════════════════
+let hudSparkChart=null;
 function initCharts(){
   const monoFont={family:'JetBrains Mono',size:9};
-  const tooltipBase={backgroundColor:'rgba(3,5,10,0.95)',borderColor:'rgba(0,255,204,0.2)',borderWidth:1,titleColor:'#00FFCC',bodyColor:'#e2e8f0',padding:10,cornerRadius:8};
+  const tooltipBase={backgroundColor:'rgba(3,5,10,0.97)',borderColor:'rgba(0,255,204,0.25)',borderWidth:1,titleColor:'#00FFCC',bodyColor:'#e2e8f0',padding:12,cornerRadius:10};
 
   equityChart=new Chart($('equityChart').getContext('2d'),{
     data:{labels:[],datasets:[
@@ -846,6 +1376,23 @@ function initCharts(){
       plugins:{legend:{display:false},tooltip:{...tooltipBase,callbacks:{label:c=>{const v=c.parsed.y;return` P&L: ${v>=0?'+':''}$${v.toFixed(2)}`}}}},
       scales:{x:{grid:{display:false},ticks:{color:'#e2e8f0',font:{family:'JetBrains Mono',size:11,weight:'700'}}},y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#6b7280',font:monoFont,callback:v=>'$'+v.toFixed(0)}}}}
   });
+
+  // HUD Sparkline
+  hudSparkChart=new Chart($('hudSparkNet').getContext('2d'),{
+    type:'line',
+    data:{labels:[],datasets:[{data:[],borderColor:'rgba(0,255,204,0.6)',backgroundColor:'rgba(0,255,204,0.08)',borderWidth:1.5,pointRadius:0,fill:true,tension:.4}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{enabled:false}},scales:{x:{display:false},y:{display:false}}}
+  });
+
+  // Mini sparklines in stat cards
+  initStatSparklines();
+}
+
+let spkNetChart=null,spkTodayChart=null;
+function initStatSparklines(){
+  const opts={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{enabled:false}},scales:{x:{display:false},y:{display:false}}};
+  spkNetChart=new Chart($('spkNetPnl').getContext('2d'),{type:'line',data:{labels:[],datasets:[{data:[],borderColor:'rgba(0,255,204,0.5)',borderWidth:1.5,pointRadius:0,fill:false,tension:.4}]},options:{...opts}});
+  spkTodayChart=new Chart($('spkToday').getContext('2d'),{type:'line',data:{labels:[],datasets:[{data:[],borderColor:'rgba(255,215,0,0.5)',borderWidth:1.5,pointRadius:0,fill:false,tension:.4}]},options:{...opts}});
 }
 
 function setChartRange(r){
@@ -878,6 +1425,30 @@ function updateCharts(){
   equityChart.data.datasets[0].backgroundColor=dVals.map(v=>v>=0?'rgba(34,197,94,0.75)':'rgba(239,68,68,0.75)');
   equityChart.data.datasets[1].data=cVals;
   equityChart.update('none');
+
+  // Update sparklines
+  if(spkNetChart&&cVals.length){
+    spkNetChart.data.labels=days;
+    spkNetChart.data.datasets[0].data=cVals;
+    spkNetChart.data.datasets[0].borderColor=cVals[cVals.length-1]>=0?'rgba(0,255,204,0.5)':'rgba(239,68,68,0.5)';
+    spkNetChart.update('none');
+  }
+
+  // Today sparkline (hourly sim)
+  const todayTrades=closed.filter(t=>tradeDate(t)===today);
+  if(spkTodayChart&&todayTrades.length){
+    const tVals=todayTrades.map((t,i)=>todayTrades.slice(0,i+1).reduce((s,x)=>s+parseFloat(x.realizedPnl||0),0));
+    spkTodayChart.data.labels=tVals.map((_,i)=>i);
+    spkTodayChart.data.datasets[0].data=tVals;
+    spkTodayChart.update('none');
+  }
+
+  // HUD sparkline
+  if(hudSparkChart&&cVals.length){
+    hudSparkChart.data.labels=days;
+    hudSparkChart.data.datasets[0].data=cVals;
+    hudSparkChart.update('none');
+  }
 
   let tickerTrades=closed;
   const tickerCutoff=new Date();
@@ -949,6 +1520,14 @@ function updateCharts(){
   $('hOpen').textContent=openCnt;$('hOpenVal').textContent=fmt(openVal)+' exposure';
   $('hTotal').textContent=trades.length;$('hTotalSub').textContent=trades.reduce((s,t)=>s+(t.closes?.length||0),0)+' closes';
   $('hEntries').textContent=trades.length;$('hCloses').textContent=trades.reduce((s,t)=>s+(t.closes?.length||0),0);
+
+  // HUD update
+  $('hudNetPnl').textContent=fmt(totalPnl);
+  $('hudNetPnl').style.color=totalPnl>=0?'var(--primary)':'#f87171';
+  $('hudTodayPnl').textContent=fmt(todayPnl);
+  $('hudTodayPnl').style.color=todayPnl>=0?'#FFD700':'#f87171';
+  $('hudWR').textContent=Math.round(wr)+'%';
+  $('hudOpen').textContent=openCnt;
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1120,6 +1699,7 @@ function toggleGrp(k){collapsedGrp.has(k)?collapsedGrp.delete(k):collapsedGrp.ad
 // ═══════════════════════════════════════════════════════
 //  RENDER TABLE
 // ═══════════════════════════════════════════════════════
+let ctxTradeIndex=null;
 function renderTable(){
   const body=$('tradeBody');body.innerHTML='';
   if(!trades.length){
@@ -1177,6 +1757,9 @@ function appendRow(body,t,oi,indent=false){
     : '';
 
   const mr=document.createElement('tr');
+  mr.dataset.tradeIdx=oi;
+  // Right-click context menu
+  mr.addEventListener('contextmenu',e=>{e.preventDefault();showCtxMenu(e,oi)});
   mr.innerHTML=`
     <td style="width:24px;padding:8px 4px">${indent?'<span style="color:#374151;font-size:8px">┗</span>':''}</td>
     <td><span class="badge ${src==='imported'?'b-imported':'b-manual'}">${src==='imported'?'📦':'✍️'}</span>${fbadge}</td>
@@ -1250,9 +1833,9 @@ function toggleEdit(oi){openEdit.has(oi)?openEdit.delete(oi):openEdit.add(oi);re
 function submitClose(oi){
   const t=trades[oi];
   const cq=parseInt($('cq-'+oi).value),ep=parseFloat($('cp-'+oi).value);
-  if(isNaN(cq)||cq<1){alert('Enter valid qty');return}
-  if(cq>t.remainingQty){alert(`Max ${t.remainingQty}`);return}
-  if(isNaN(ep)||ep<=0){alert('Enter valid exit price');return}
+  if(isNaN(cq)||cq<1){showToast('error','Invalid Input','Enter a valid quantity.');return}
+  if(cq>t.remainingQty){showToast('error','Qty Exceeds Available',`Max ${t.remainingQty}`);return}
+  if(isNaN(ep)||ep<=0){showToast('error','Invalid Price','Enter a valid exit price.');return}
   const pnl=((ep-t.entry)*100*cq).toFixed(2);
   const now=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
   if(!t.closes)t.closes=[];
@@ -1263,13 +1846,16 @@ function submitClose(oi){
   t.realizedPnl=t.closes.reduce((s,c)=>s+parseFloat(c.pnl),0);
   t.status=t.remainingQty===0?'CLOSED':'PARTIAL';
   openClose.delete(oi);save();render();
+  const p=parseFloat(pnl);
+  showToast(p>=0?'pnl-pos':'pnl-neg',p>=0?'Position Closed ✓':'Position Closed',`${t.stock} ${t.option} — ${p>=0?'+':''}${fmt(p)}`);
+  updateTape();
 }
 
 function submitEdit(oi){
   const t=trades[oi];
   const ns=$('es-'+oi).value.trim().toUpperCase(),no=$('eo-'+oi).value,nd=$('ed-'+oi).value;
   const ne=parseFloat($('ee-'+oi).value),nq=parseInt($('eq-'+oi).value),nt=$('et-'+oi).value.trim();
-  if(!ns||isNaN(ne)||ne<=0||isNaN(nq)||nq<1){alert('Fill all fields');return}
+  if(!ns||isNaN(ne)||ne<=0||isNaN(nq)||nq<1){showToast('error','Validation Error','Fill all required fields.');return}
   const newSetups=Array.from(document.querySelectorAll(`[data-es="${oi}"].on`)).map(b=>b.dataset.v);
   t.stock=ns;t.option=no;t.day=nd;t.entry=ne;t.totalQty=nq;
   if(t.remainingQty>nq)t.remainingQty=nq;t.entryTime=nt;
@@ -1281,11 +1867,12 @@ function submitEdit(oi){
     t.realizedPnl=t.closes.reduce((s,c)=>s+parseFloat(c.pnl),0);
   }
   openEdit.delete(oi);save();render();
+  showToast('info','Trade Updated',`${ns} position edited.`);
 }
 
 function delTrade(oi){
-  if(isFrozen(trades[oi])){alert('Trade is frozen. Delete via Import Manager.');return}
-  if(confirm('Delete this trade?')){openClose.delete(oi);openEdit.delete(oi);trades.splice(oi,1);save();render()}
+  if(isFrozen(trades[oi])){showToast('warning','Frozen','Delete via Import Manager.');return}
+  if(confirm('Delete this trade?')){openClose.delete(oi);openEdit.delete(oi);const sym=trades[oi].stock;trades.splice(oi,1);save();render();showToast('info','Deleted',`${sym} trade removed.`)}
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1298,14 +1885,16 @@ $('tradeForm').onsubmit=e=>{
   const type=document.querySelector('#typeSel .on')?.dataset.type;
   const day=$('daySelect').value,ent=parseFloat($('entry').value),cnt=parseInt($('count').value);
   const set=Array.from(document.querySelectorAll('#setupGrid .on')).map(b=>b.dataset.val);
-  if(!tick){alert('Select a symbol');return}
-  if(!type){alert('Select Call or Put');return}
-  if(!day){alert('Select a day');return}
-  if(isNaN(ent)||ent<=0){alert('Enter valid entry price');return}
-  if(!set.length){alert('Select at least one setup');return}
+  if(!tick){showToast('error','Missing Symbol','Select or enter a symbol.');return}
+  if(!type){showToast('error','Missing Type','Select Call or Put.');return}
+  if(!day){showToast('error','Missing Day','Select a trading day.');return}
+  if(isNaN(ent)||ent<=0){showToast('error','Invalid Price','Enter a valid entry price.');return}
+  if(!set.length){showToast('error','No Setup','Select at least one setup.');return}
   trades.unshift({id:genId(),stock:tick,option:type,day,totalQty:cnt,remainingQty:cnt,entry:ent,avgExit:0,status:'OPEN',entryTime:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),setups:set,closes:[],realizedPnl:0,timestamp:new Date().toISOString(),source:'manual'});
   $('tradeForm').reset();document.querySelectorAll('.tg-btn').forEach(b=>b.classList.remove('on'));
   setTodayDay();save();render();
+  showToast('success','Trade Opened',`${tick} ${type} — Entry $${ent.toFixed(2)} × ${cnt}`);
+  updateTape();
 };
 
 document.querySelectorAll('#setupGrid .tg-btn').forEach(b=>{b.onclick=function(){this.classList.toggle('on')}});
@@ -1337,6 +1926,7 @@ function saveProfile(){
   profileData.bio=$('pBioInput').value||'';
   localStorage.setItem('stellium_profile',JSON.stringify(profileData));
   $('profileEditForm').style.display='none';renderProfile();
+  showToast('success','Profile Saved','Name and bio updated.');
 }
 function handleProfilePic(e){
   const file=e.target.files[0];if(!file)return;
@@ -1377,6 +1967,7 @@ function saveJournal(){
     rating:journalRating,chart:tradeJournals[currentJournalTradeId]?.chart||''
   };
   save();renderTable();closeJournal();
+  showToast('success','Journal Saved','Trade reflection recorded.');
 }
 function handleScreenshotClick(){
   const hasImg=$('jChartPreview').style.display!=='none';
@@ -1409,19 +2000,322 @@ function adjustZoom(delta){
   $('zoomLevelLabel').textContent=Math.round(zoomLevel*100)+'%';
 }
 function resetZoom(){zoomLevel=1;$('zoomImg').style.transform='scale(1)';$('zoomLevelLabel').textContent='100%'}
-document.addEventListener('keydown',e=>{
-  if($('zoomOverlay').style.display==='flex'){
-    if(e.key==='Escape')closeZoom();
-    if(e.key==='='||e.key==='+')adjustZoom(0.2);
-    if(e.key==='-')adjustZoom(-0.2);
-    if(e.key==='0')resetZoom();
-  }
-});
 function setJRating(n){journalRating=n;renderStars()}
 function renderStars(){
   const stars=$('jStars').querySelectorAll('span');
   stars.forEach((s,i)=>{s.style.filter=i<journalRating?'brightness(1)':'brightness(0.25)'});
 }
+
+// ═══════════════════════════════════════════════════════
+//  ✦ ENHANCEMENT 1 — COMMAND PALETTE
+// ═══════════════════════════════════════════════════════
+let cmdItems=[
+  {icon:'📁',label:'Import Excel File',kbd:'⌘I',action:()=>document.getElementById('fileInput').click()},
+  {icon:'💾',label:'Export to Excel',kbd:'⌘E',action:()=>exportToExcel()},
+  {icon:'⌨️',label:'Show Keyboard Shortcuts',kbd:'?',action:()=>{closeCmdPalette();openShortcuts()}},
+  {icon:'🗂️',label:'Toggle Import Manager',kbd:'',action:()=>toggleMgr()},
+  {icon:'📋',label:'View: Flat',kbd:'1',action:()=>setView('flat')},
+  {icon:'📅',label:'View: Daily Groups',kbd:'2',action:()=>setView('daily')},
+  {icon:'🗓️',label:'View: Weekly Groups',kbd:'3',action:()=>setView('weekly')},
+  {icon:'📆',label:'View: Monthly Groups',kbd:'4',action:()=>setView('monthly')},
+  {icon:'⊞',label:'Expand All Groups',kbd:'',action:()=>expandAll()},
+  {icon:'⊟',label:'Collapse All Groups',kbd:'',action:()=>collapseAll()},
+  {icon:'📊',label:'Metrics: Today',kbd:'D',action:()=>setMetricPeriod('daily')},
+  {icon:'📊',label:'Metrics: This Week',kbd:'',action:()=>setMetricPeriod('weekly')},
+  {icon:'📊',label:'Metrics: This Month',kbd:'',action:()=>setMetricPeriod('monthly')},
+  {icon:'📊',label:'Metrics: This Year',kbd:'Y',action:()=>setMetricPeriod('yearly')},
+  {icon:'📈',label:'Chart: All Time',kbd:'A',action:()=>setChartRange('all')},
+  {icon:'📈',label:'Chart: This Month',kbd:'M',action:()=>setChartRange('month')},
+  {icon:'📈',label:'Chart: This Week',kbd:'W',action:()=>setChartRange('week')},
+  {icon:'🔲',label:'Toggle HUD Sidebar',kbd:'⌘H',action:()=>toggleHUD()},
+  {icon:'📡',label:'Toggle Trading Tape',kbd:'⌘T',action:()=>toggleTape()},
+];
+let cmdSel=0;
+
+function openCmdPalette(){
+  $('cmdPalette').classList.add('open');
+  $('cmdInput').value='';
+  cmdSel=0;
+  renderCmdItems('');
+  setTimeout(()=>$('cmdInput').focus(),50);
+}
+function closeCmdPalette(e){
+  if(!e||e.target===$('cmdPalette'))$('cmdPalette').classList.remove('open');
+}
+
+function renderCmdItems(q){
+  const filtered=q?cmdItems.filter(i=>i.label.toLowerCase().includes(q.toLowerCase())):cmdItems;
+  if(filtered.length===0){
+    $('cmdResults').innerHTML='<div style="padding:20px;text-align:center;color:#4b5563;font-size:12px;font-family:JetBrains Mono,monospace">No commands found</div>';
+    return;
+  }
+  $('cmdResults').innerHTML=`<div class="cmd-section">Commands</div>`+filtered.map((item,i)=>`
+    <div class="cmd-item ${i===cmdSel?'selected':''}" data-idx="${i}" onclick="runCmdItem(${i},${JSON.stringify(filtered).replace(/</g,'&lt;')})">
+      <div class="cmd-item-icon">${item.icon}</div>
+      <span class="cmd-item-label">${item.label}</span>
+      ${item.kbd?`<span class="cmd-item-kbd">${item.kbd}</span>`:''}
+    </div>`).join('');
+}
+
+$('cmdInput').addEventListener('input',e=>{cmdSel=0;renderCmdItems(e.target.value)});
+$('cmdInput').addEventListener('keydown',e=>{
+  const items=$('cmdResults').querySelectorAll('.cmd-item');
+  if(e.key==='ArrowDown'){e.preventDefault();cmdSel=Math.min(cmdSel+1,items.length-1);items.forEach((el,i)=>el.classList.toggle('selected',i===cmdSel));items[cmdSel]?.scrollIntoView({block:'nearest'})}
+  else if(e.key==='ArrowUp'){e.preventDefault();cmdSel=Math.max(cmdSel-1,0);items.forEach((el,i)=>el.classList.toggle('selected',i===cmdSel));items[cmdSel]?.scrollIntoView({block:'nearest'})}
+  else if(e.key==='Enter'){
+    const q=$('cmdInput').value;
+    const filtered=q?cmdItems.filter(i=>i.label.toLowerCase().includes(q.toLowerCase())):cmdItems;
+    if(filtered[cmdSel]){$('cmdPalette').classList.remove('open');filtered[cmdSel].action();}
+  }
+  else if(e.key==='Escape'){$('cmdPalette').classList.remove('open')}
+});
+
+function runCmdItem(idx,items){
+  // Not used this way — handled via direct closure
+}
+
+// ═══════════════════════════════════════════════════════
+//  ✦ ENHANCEMENT 2 — TOAST SYSTEM
+// ═══════════════════════════════════════════════════════
+function showToast(type,title,msg,dur=3500){
+  const icons={success:'✅',error:'❌',info:'ℹ️',warning:'⚠️','pnl-pos':'💹','pnl-neg':'📉'};
+  const t=document.createElement('div');
+  t.className=`toast ${type}`;
+  t.style.setProperty('--dur',dur+'ms');
+  t.innerHTML=`<span class="toast-icon">${icons[type]||'💬'}</span><div class="toast-body"><div class="toast-title">${title}</div><div class="toast-msg">${msg}</div></div><span class="toast-close" onclick="dismissToast(this.parentElement)">✕</span>`;
+  $('toastContainer').prepend(t);
+  t.addEventListener('click',()=>dismissToast(t));
+  setTimeout(()=>dismissToast(t),dur);
+}
+function dismissToast(el){
+  if(!el||el.classList.contains('out'))return;
+  el.classList.add('out');
+  setTimeout(()=>el.remove(),280);
+}
+
+// ═══════════════════════════════════════════════════════
+//  ✦ ENHANCEMENT 3 — KEYBOARD SHORTCUTS OVERLAY
+// ═══════════════════════════════════════════════════════
+function openShortcuts(){$('shortcutOverlay').classList.add('open')}
+function closeShortcuts(e){
+  if(!e||e.target===$('shortcutOverlay'))$('shortcutOverlay').classList.remove('open');
+}
+
+// ═══════════════════════════════════════════════════════
+//  ✦ ENHANCEMENT 4 — CONTEXT MENU
+// ═══════════════════════════════════════════════════════
+function showCtxMenu(e,oi){
+  ctxTradeIndex=oi;
+  const t=trades[oi];
+  const menu=$('contextMenu');
+  $('ctxLabel').textContent=`${t.stock} ${t.option} — ${t.status}`;
+  $('ctxClose').style.display=t.remainingQty>0?'flex':'none';
+  $('ctxEdit').style.display=isFrozen(t)?'none':'flex';
+  $('ctxDelete').style.display=isFrozen(t)?'none':'flex';
+  menu.style.display='block';
+  const x=Math.min(e.clientX,window.innerWidth-220),y=Math.min(e.clientY,window.innerHeight-200);
+  menu.style.left=x+'px';menu.style.top=y+'px';
+}
+function ctxAction(act){
+  $('contextMenu').style.display='none';
+  if(ctxTradeIndex===null)return;
+  const oi=ctxTradeIndex;const t=trades[oi];
+  if(act==='close'&&t.remainingQty>0)toggleClose(oi);
+  if(act==='journal')openJournal(t.id);
+  if(act==='edit'&&!isFrozen(t))toggleEdit(oi);
+  if(act==='delete'&&!isFrozen(t))delTrade(oi);
+  ctxTradeIndex=null;
+}
+document.addEventListener('click',()=>$('contextMenu').style.display='none');
+document.addEventListener('contextmenu',e=>{if(!e.target.closest('#tradeBody tr[data-trade-idx]'))$('contextMenu').style.display='none'});
+
+// ═══════════════════════════════════════════════════════
+//  ✦ ENHANCEMENT 5 — TRADING TAPE
+// ═══════════════════════════════════════════════════════
+let tapeVisible=true;
+function updateTape(){
+  const closed=trades.filter(t=>t.status==='CLOSED').slice(0,40);
+  if(!closed.length){
+    $('tapeInner').innerHTML='<div class="tape-item" style="color:#374151">No closed trades yet — your activity will appear here</div>'.repeat(4);
+    return;
+  }
+  let html='';
+  closed.forEach(t=>{
+    const pnl=parseFloat(t.realizedPnl||0);
+    html+=`<div class="tape-item">
+      <span class="t-sym">${t.stock}</span>
+      <span class="t-type ${t.option==='CALL'?'t-call':'t-put'}">${t.option}</span>
+      <span class="t-price">@${t.entry.toFixed(2)}</span>
+      <span class="${pnl>=0?'t-pos':'t-neg'}">${pnl>=0?'+':''}${fmt(pnl)}</span>
+    </div>`;
+  });
+  $('tapeInner').innerHTML=html+html;// duplicate for seamless loop
+}
+function toggleTape(){
+  tapeVisible=!tapeVisible;
+  $('tradingTape').style.display=tapeVisible?'flex':'none';
+  document.body.style.paddingBottom=tapeVisible?'32px':'0';
+}
+
+// ═══════════════════════════════════════════════════════
+//  ✦ ENHANCEMENT 6 — HUD SIDEBAR
+// ═══════════════════════════════════════════════════════
+let hudOpen=false;
+function toggleHUD(){
+  hudOpen=!hudOpen;
+  $('hudSidebar').classList.toggle('collapsed',!hudOpen);
+  $('hudToggleBtn').textContent=hudOpen?'▶':'◀';
+}
+
+// ═══════════════════════════════════════════════════════
+//  ✦ ENHANCEMENT 7 — PARTICLE CANVAS (neural net style)
+// ═══════════════════════════════════════════════════════
+function initParticles(){
+  const canvas=$('particleCanvas');
+  const ctx=canvas.getContext('2d');
+  let W,H,particles=[];
+  function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight}
+  resize();window.addEventListener('resize',()=>{resize();init()});
+
+  function init(){
+    particles=[];
+    const count=Math.floor((W*H)/18000);
+    for(let i=0;i<count;i++){
+      particles.push({
+        x:Math.random()*W,y:Math.random()*H,
+        vx:(Math.random()-.5)*.3,vy:(Math.random()-.5)*.3,
+        r:Math.random()*1.5+.5,
+        opacity:Math.random()*.4+.1
+      });
+    }
+  }
+  init();
+
+  let mouseX=W/2,mouseY=H/2;
+  document.addEventListener('mousemove',e=>{mouseX=e.clientX;mouseY=e.clientY});
+
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    particles.forEach((p,i)=>{
+      p.x+=p.vx;p.y+=p.vy;
+      if(p.x<0)p.x=W;if(p.x>W)p.x=0;
+      if(p.y<0)p.y=H;if(p.y>H)p.y=0;
+
+      // Mouse attraction
+      const dx=mouseX-p.x,dy=mouseY-p.y,dist=Math.sqrt(dx*dx+dy*dy);
+      if(dist<120){p.vx+=dx/dist*.005;p.vy+=dy/dist*.005}
+      p.vx=Math.max(-0.8,Math.min(0.8,p.vx));
+      p.vy=Math.max(-0.8,Math.min(0.8,p.vy));
+
+      ctx.beginPath();
+      ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(0,255,204,${p.opacity})`;
+      ctx.fill();
+
+      // Connect nearby particles
+      for(let j=i+1;j<particles.length;j++){
+        const q=particles[j];
+        const ddx=p.x-q.x,ddy=p.y-q.y,dd=Math.sqrt(ddx*ddx+ddy*ddy);
+        if(dd<100){
+          ctx.beginPath();
+          ctx.moveTo(p.x,p.y);ctx.lineTo(q.x,q.y);
+          ctx.strokeStyle=`rgba(0,255,204,${(1-dd/100)*.06})`;
+          ctx.lineWidth=.5;ctx.stroke();
+        }
+      }
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+// ═══════════════════════════════════════════════════════
+//  ✦ ENHANCEMENT 8 — 3D TILT STAT CARDS
+// ═══════════════════════════════════════════════════════
+function initTilt(){
+  document.querySelectorAll('[data-tilt]').forEach(card=>{
+    card.addEventListener('mousemove',e=>{
+      const r=card.getBoundingClientRect();
+      const cx=r.left+r.width/2,cy=r.top+r.height/2;
+      const dx=e.clientX-cx,dy=e.clientY-cy;
+      const rx=dy/r.height*12,ry=-dx/r.width*12;
+      card.style.transform=`perspective(600px) rotateX(${rx}deg) rotateY(${ry}deg) translateZ(6px)`;
+      card.style.boxShadow=`0 20px 40px rgba(0,0,0,0.4),0 0 30px rgba(0,255,204,0.12)`;
+      // Update glow position CSS var
+      const mx=((e.clientX-r.left)/r.width*100).toFixed(1);
+      const my=((e.clientY-r.top)/r.height*100).toFixed(1);
+      card.style.setProperty('--mx',mx+'%');
+      card.style.setProperty('--my',my+'%');
+    });
+    card.addEventListener('mouseleave',()=>{
+      card.style.transform='perspective(600px) rotateX(0) rotateY(0) translateZ(0)';
+      card.style.boxShadow='';
+    });
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+//  ✦ ENHANCEMENT 9 — CURSOR GLOW
+// ═══════════════════════════════════════════════════════
+function initCursorGlow(){
+  const glow=$('cursorGlow');
+  document.addEventListener('mousemove',e=>{
+    glow.style.left=e.clientX+'px';
+    glow.style.top=e.clientY+'px';
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+//  ✦ GLOBAL KEYBOARD SHORTCUTS
+// ═══════════════════════════════════════════════════════
+document.addEventListener('keydown',e=>{
+  // Don't intercept when typing in inputs
+  const tag=document.activeElement.tagName;
+  const inInput=tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT';
+
+  // Zoom overlay shortcuts
+  if($('zoomOverlay').style.display==='flex'){
+    if(e.key==='Escape')closeZoom();
+    if(e.key==='='||e.key==='+')adjustZoom(0.2);
+    if(e.key==='-')adjustZoom(-0.2);
+    if(e.key==='0')resetZoom();
+    return;
+  }
+
+  // ESC always closes overlays
+  if(e.key==='Escape'){
+    $('cmdPalette').classList.remove('open');
+    $('shortcutOverlay').classList.remove('open');
+    $('contextMenu').style.display='none';
+    return;
+  }
+
+  // ⌘K or Ctrl+K — command palette
+  if((e.metaKey||e.ctrlKey)&&e.key==='k'){e.preventDefault();openCmdPalette();return}
+  // ⌘I
+  if((e.metaKey||e.ctrlKey)&&e.key==='i'){e.preventDefault();document.getElementById('fileInput').click();return}
+  // ⌘E
+  if((e.metaKey||e.ctrlKey)&&e.key==='e'){e.preventDefault();exportToExcel();return}
+  // ⌘H
+  if((e.metaKey||e.ctrlKey)&&e.key==='h'){e.preventDefault();toggleHUD();return}
+  // ⌘T
+  if((e.metaKey||e.ctrlKey)&&e.key==='t'){e.preventDefault();toggleTape();return}
+
+  if(inInput)return;
+
+  if(e.key==='?')openShortcuts();
+  if(e.key==='1')setView('flat');
+  if(e.key==='2')setView('daily');
+  if(e.key==='3')setView('weekly');
+  if(e.key==='4')setView('monthly');
+  if(e.key==='a'||e.key==='A')setChartRange('all');
+  if(e.key==='m'&&!e.shiftKey)setChartRange('month');
+  if(e.key==='w'&&!e.shiftKey)setChartRange('week');
+  if(e.key==='d'||e.key==='D')setMetricPeriod('daily');
+  if(e.key==='W'&&e.shiftKey)setMetricPeriod('weekly');
+  if(e.key==='M'&&e.shiftKey)setMetricPeriod('monthly');
+  if(e.key==='y'||e.key==='Y')setMetricPeriod('yearly');
+});
 
 // ═══════════════════════════════════════════════════════
 //  MASTER RENDER
@@ -1445,7 +2339,13 @@ window.onload=()=>{
   $('currentDateDisplay').textContent=new Date().toDateString();
   setTodayDay();
   migrateTimestamps();
+  initParticles();
+  initTilt();
+  initCursorGlow();
   render();
+  updateTape();
+  // Welcome toast
+  setTimeout(()=>showToast('info','Stellium Elite','Press ⌘K for commands · ? for shortcuts',4000),800);
 };
 </script>
 </body>
