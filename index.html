@@ -592,148 +592,253 @@ body{padding-bottom:32px}
 ════════════════════════════════════════ -->
 <div id="page-premarket" class="page-section" style="display:none">
 
-  <!-- DATE / SESSION BAR -->
-  <div class="pm-glass mb-5">
-    <div class="flex flex-wrap items-center justify-between gap-4">
-      <div class="flex items-center gap-4 flex-wrap">
-        <div><label class="field-lbl">Plan Date</label><input type="date" id="planDate" style="width:160px"></div>
-        <div>
-          <label class="field-lbl">Market Session</label>
-          <div class="tg-group" id="sessionSel">
-            <div class="tg-btn on" style="--bc:#00FFCC;flex:none" data-val="Regular">Regular</div>
-            <div class="tg-btn" style="--bc:#FFD700;flex:none" data-val="FOMC">FOMC</div>
-            <div class="tg-btn" style="--bc:#f97316;flex:none" data-val="Earnings">Earnings</div>
-            <div class="tg-btn" style="--bc:#a855f7;flex:none" data-val="CPI/Data">CPI/Data</div>
-            <div class="tg-btn" style="--bc:#ef4444;flex:none" data-val="Opex">Opex</div>
-          </div>
-        </div>
-      </div>
-      <div style="display:flex;gap:8px">
-        <button onclick="pmSavePlan()" class="pm-btn-save">💾 Save Plan</button>
-        <button onclick="pmClearForm()" class="pm-btn-ghost">↺ Clear</button>
+<style>
+/* ── PRE-MARKET REDESIGN ── */
+.pm-header-bar{
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;
+  padding:20px 28px;margin-bottom:24px;
+  background:linear-gradient(135deg,rgba(0,255,204,0.04) 0%,rgba(0,217,255,0.02) 50%,rgba(168,85,247,0.03) 100%);
+  border:1px solid rgba(0,255,204,0.14);border-radius:18px;
+  position:relative;overflow:hidden;
+}
+.pm-header-bar::before{
+  content:'';position:absolute;top:-1px;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--primary),var(--secondary),var(--purple),transparent);
+}
+.pm-header-bar::after{
+  content:'PRE-MARKET';position:absolute;right:28px;top:50%;transform:translateY(-50%);
+  font-size:56px;font-weight:900;color:rgba(0,255,204,0.025);font-family:'JetBrains Mono',monospace;
+  letter-spacing:-.04em;pointer-events:none;user-select:none;
+}
+.pm-date-badge{
+  display:flex;align-items:center;gap:10px;
+}
+.pm-date-badge .pm-day-label{
+  font-size:22px;font-weight:900;color:#fff;font-family:'JetBrains Mono',monospace;letter-spacing:-.02em;
+}
+.pm-date-badge .pm-full-date{
+  font-size:10px;color:rgba(0,255,204,0.5);font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.12em;margin-top:2px;
+}
+.pm-date-input{
+  background:rgba(0,0,0,0.5);border:1px solid rgba(0,255,204,0.2);color:#e2e8f0;
+  padding:8px 12px;border-radius:8px;font-size:12px;font-family:'JetBrains Mono',monospace;
+  outline:none;transition:all .2s;width:auto;
+}
+.pm-date-input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(0,255,204,0.08);}
+
+/* BIAS PANEL */
+.pm-bias-panel{
+  background:rgba(6,10,18,0.9);border:1px solid rgba(0,255,204,0.12);border-radius:18px;
+  padding:28px;margin-bottom:24px;position:relative;overflow:hidden;
+}
+.pm-bias-panel::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--bias-grad,linear-gradient(90deg,#6b7280,#9ca3af));}
+.pm-bias-panel.bull::before{background:linear-gradient(90deg,#22c55e,#4ade80,#22c55e)}
+.pm-bias-panel.bear::before{background:linear-gradient(90deg,#ef4444,#f87171,#ef4444)}
+.pm-bias-panel.neutral::before{background:linear-gradient(90deg,#6b7280,#9ca3af,#6b7280)}
+
+.bias-selector{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:20px;}
+.bias-btn{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+  padding:18px 10px;border-radius:12px;cursor:pointer;
+  border:1.5px solid rgba(255,255,255,0.07);background:rgba(0,0,0,0.3);
+  transition:all .2s;user-select:none;
+}
+.bias-btn .bias-emoji{font-size:26px;transition:transform .2s;}
+.bias-btn .bias-label{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.12em;font-family:'JetBrains Mono',monospace;color:#6b7280;transition:color .2s;}
+.bias-btn:hover{transform:translateY(-2px);}
+.bias-btn.active-bull{background:rgba(34,197,94,0.12);border-color:rgba(34,197,94,0.5);box-shadow:0 0 20px rgba(34,197,94,0.15),0 0 0 1px rgba(34,197,94,0.1);}
+.bias-btn.active-bull .bias-label{color:#4ade80;}
+.bias-btn.active-bull .bias-emoji{transform:scale(1.15);}
+.bias-btn.active-bear{background:rgba(239,68,68,0.12);border-color:rgba(239,68,68,0.5);box-shadow:0 0 20px rgba(239,68,68,0.15),0 0 0 1px rgba(239,68,68,0.1);}
+.bias-btn.active-bear .bias-label{color:#f87171;}
+.bias-btn.active-bear .bias-emoji{transform:scale(1.15);}
+.bias-btn.active-neut{background:rgba(107,114,128,0.15);border-color:rgba(156,163,175,0.4);box-shadow:0 0 20px rgba(107,114,128,0.1);}
+.bias-btn.active-neut .bias-label{color:#9ca3af;}
+.bias-btn.active-neut .bias-emoji{transform:scale(1.15);}
+
+.bias-note-input{
+  width:100%;background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.07);
+  color:#e2e8f0;padding:12px 14px;border-radius:10px;font-size:12px;
+  font-family:'Inter',sans-serif;resize:none;outline:none;transition:border-color .2s;line-height:1.6;
+}
+.bias-note-input:focus{border-color:var(--primary);}
+
+/* WATCHLIST TABLE */
+.pm-watchlist-panel{
+  background:rgba(6,10,18,0.9);border:1px solid rgba(0,255,204,0.12);border-radius:18px;
+  overflow:hidden;position:relative;
+}
+.pm-watchlist-panel::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--secondary),var(--primary),transparent);}
+.pm-wl-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:20px 24px 16px;border-bottom:1px solid rgba(255,255,255,0.05);
+}
+.pm-wl-title{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.18em;color:rgba(0,255,204,0.6);font-family:'JetBrains Mono',monospace;display:flex;align-items:center;gap:8px;}
+.pm-wl-title::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--primary);box-shadow:0 0 8px var(--primary);animation:pulse 2s ease infinite;}
+
+.wl-table{width:100%;border-collapse:collapse;}
+.wl-table thead th{
+  padding:10px 14px;text-align:left;font-size:9px;font-weight:800;text-transform:uppercase;
+  letter-spacing:.14em;color:rgba(0,255,204,0.45);font-family:'JetBrains Mono',monospace;
+  border-bottom:1px solid rgba(0,255,204,0.08);background:rgba(0,0,0,0.2);
+}
+.wl-table thead th:first-child{width:90px;}
+.wl-table thead th.col-dir{width:90px;}
+.wl-table tbody tr{border-bottom:1px solid rgba(255,255,255,0.03);transition:background .15s;}
+.wl-table tbody tr:hover{background:rgba(0,255,204,0.025);}
+.wl-table tbody tr:last-child{border-bottom:none;}
+.wl-table tbody td{padding:8px 14px;vertical-align:middle;}
+
+.wl-input{
+  width:100%;background:transparent;border:none;color:#e2e8f0;
+  font-family:'JetBrains Mono',monospace;font-size:12px;outline:none;padding:4px 0;
+  transition:color .2s;
+}
+.wl-input::placeholder{color:#374151;}
+.wl-input:focus{color:#fff;}
+.wl-ticker-input{font-size:13px;font-weight:900;text-transform:uppercase;color:var(--primary);letter-spacing:.06em;}
+.wl-ticker-input::placeholder{color:rgba(0,255,204,0.2);font-weight:400;}
+
+.dir-toggle{
+  display:flex;gap:4px;
+}
+.dir-btn{
+  padding:4px 10px;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;
+  border-radius:5px;cursor:pointer;font-family:'JetBrains Mono',monospace;
+  background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);
+  color:#4b5563;transition:all .15s;
+}
+.dir-btn:hover{border-color:rgba(255,255,255,0.15);color:#9ca3af;}
+.dir-btn.long-on{background:rgba(34,197,94,0.15);border-color:rgba(34,197,94,0.4);color:#4ade80;box-shadow:0 0 8px rgba(34,197,94,0.2);}
+.dir-btn.short-on{background:rgba(239,68,68,0.15);border-color:rgba(239,68,68,0.4);color:#f87171;box-shadow:0 0 8px rgba(239,68,68,0.2);}
+
+.wl-del-btn{
+  background:transparent;border:none;color:#374151;cursor:pointer;
+  font-size:14px;padding:4px 8px;border-radius:5px;transition:all .15s;line-height:1;
+}
+.wl-del-btn:hover{color:#f87171;background:rgba(239,68,68,0.1);}
+
+.pm-add-row-btn{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  width:100%;padding:13px;
+  background:transparent;border:none;border-top:1px solid rgba(255,255,255,0.04);
+  color:rgba(0,255,204,0.35);cursor:pointer;font-size:10px;font-weight:800;
+  font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.12em;
+  transition:all .2s;
+}
+.pm-add-row-btn:hover{color:var(--primary);background:rgba(0,255,204,0.03);}
+.pm-add-row-btn::before{content:'＋';font-size:14px;}
+
+/* SAVE BAR */
+.pm-save-bar{
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;
+  padding:16px 20px;margin-top:24px;
+  background:rgba(0,0,0,0.3);border:1px solid rgba(0,255,204,0.1);border-radius:14px;
+}
+.pm-saved-strip{
+  border:1px solid rgba(0,255,204,0.1);border-radius:12px;padding:14px 20px;margin-top:12px;
+  display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+  background:rgba(0,255,204,0.03);animation:pmSlideIn .3s ease;
+}
+@keyframes pmSlideIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+.pm-saved-bias{font-size:18px;}
+.pm-saved-date{font-size:12px;font-weight:900;color:#fff;font-family:'JetBrains Mono',monospace;}
+.pm-saved-note{font-size:11px;color:#6b7280;font-style:italic;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+</style>
+
+<!-- HEADER BAR -->
+<div class="pm-header-bar">
+  <div class="pm-date-badge">
+    <div>
+      <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.18em;color:rgba(0,255,204,0.4);font-family:'JetBrains Mono',monospace;margin-bottom:4px">Pre-Market Plan</div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <input type="date" id="planDate" class="pm-date-input">
+        <div id="pmDayLabel" style="font-size:18px;font-weight:900;color:var(--primary);font-family:'JetBrains Mono',monospace;letter-spacing:-.02em"></div>
       </div>
     </div>
   </div>
+  <div style="display:flex;gap:10px;align-items:center;position:relative;z-index:1">
+    <button onclick="pmSavePlan()" style="display:inline-flex;align-items:center;gap:7px;background:linear-gradient(135deg,var(--primary),var(--secondary));color:#000;padding:11px 24px;border:none;border-radius:10px;cursor:pointer;font-size:11px;font-weight:900;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.1em;transition:all .2s" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 24px rgba(0,255,204,0.3)'" onmouseout="this.style.transform='';this.style.boxShadow=''">💾 Save Plan</button>
+    <button onclick="pmClearForm()" style="display:inline-flex;align-items:center;gap:7px;background:transparent;border:1.5px solid rgba(255,255,255,0.12);color:#6b7280;padding:10px 18px;border-radius:10px;cursor:pointer;font-size:11px;font-weight:700;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.08em;transition:all .2s" onmouseover="this.style.borderColor='rgba(0,255,204,0.3)';this.style.color='var(--primary)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.12)';this.style.color='#6b7280'">↺ Clear</button>
+  </div>
+</div>
 
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-5">
+<!-- TWO COLUMN LAYOUT -->
+<div style="display:grid;grid-template-columns:340px 1fr;gap:20px;align-items:start" class="pm-main-grid">
 
-    <!-- COL 1 -->
-    <div class="flex flex-col gap-5">
-      <!-- BIAS -->
-      <div class="pm-glass">
-        <div class="section-title">🧭 Market Bias</div>
-        <div class="grid grid-cols-3 gap-2 mb-4">
-          <div class="tg-btn" style="--bc:#22c55e;flex:none;text-align:center" data-bias="Bull" onclick="pmSetBias('Bull',this)">🐂 Bull</div>
-          <div class="tg-btn" style="--bc:#6b7280;flex:none;text-align:center" data-bias="Neutral" onclick="pmSetBias('Neutral',this)">⚖️ Flat</div>
-          <div class="tg-btn" style="--bc:#ef4444;flex:none;text-align:center" data-bias="Bear" onclick="pmSetBias('Bear',this)">🐻 Bear</div>
-        </div>
-        <div><label class="field-lbl">Bias Reason</label><textarea id="biasReason" rows="3" placeholder="Overnight action, futures, gap, catalyst…"></textarea></div>
+  <!-- LEFT: MARKET BIAS -->
+  <div class="pm-bias-panel" id="pmBiasPanel">
+    <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.2em;color:rgba(0,255,204,0.45);font-family:'JetBrains Mono',monospace;margin-bottom:20px;display:flex;align-items:center;gap:8px">
+      <span style="display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--primary);box-shadow:0 0 6px var(--primary)"></span>
+      Market Bias
+    </div>
+
+    <div class="bias-selector">
+      <div class="bias-btn" id="biasBull" onclick="pmSetBias('bull')">
+        <span class="bias-emoji">🐂</span>
+        <span class="bias-label">Bull</span>
       </div>
-      <!-- MOOD -->
-      <div class="pm-glass">
-        <div class="section-title">🧠 Trader State</div>
-        <div class="mb-3">
-          <label class="field-lbl">Mental State</label>
-          <div class="mood-meter" id="moodMeter">
-            <div class="mood-btn" data-mood="😤" onclick="pmSetMood(this)" title="Frustrated">😤</div>
-            <div class="mood-btn" data-mood="😰" onclick="pmSetMood(this)" title="Anxious">😰</div>
-            <div class="mood-btn" data-mood="😐" onclick="pmSetMood(this)" title="Neutral">😐</div>
-            <div class="mood-btn on" data-mood="🙂" onclick="pmSetMood(this)" title="Focused">🙂</div>
-            <div class="mood-btn" data-mood="🔥" onclick="pmSetMood(this)" title="On Fire">🔥</div>
-          </div>
-        </div>
-        <div class="mb-3">
-          <label class="field-lbl">Risk Appetite <span id="riskLabel" style="color:var(--primary)">50%</span></label>
-          <input type="range" id="riskSlider" class="risk-slider" min="0" max="100" value="50" oninput="$('riskLabel').textContent=this.value+'%'">
-          <div style="display:flex;justify-content:space-between;font-size:8px;color:#4b5563;font-family:'JetBrains Mono',monospace;margin-top:3px"><span>Sit Out</span><span>Half Size</span><span>Full Size</span></div>
-        </div>
-        <div><label class="field-lbl">Max Loss Today ($)</label><input type="number" id="maxLoss" placeholder="e.g. 500" step="50"></div>
+      <div class="bias-btn" id="biasNeut" onclick="pmSetBias('neutral')">
+        <span class="bias-emoji">⚖️</span>
+        <span class="bias-label">Neutral</span>
       </div>
-      <!-- CHECKLIST -->
-      <div class="pm-glass">
-        <div class="section-title">✅ Pre-Market Checklist</div>
-        <div id="checklistItems">
-          <div class="checklist-item" onclick="pmToggleCheck(this)"><span class="check-icon">⬜</span>Checked futures / gap</div>
-          <div class="checklist-item" onclick="pmToggleCheck(this)"><span class="check-icon">⬜</span>Reviewed key levels</div>
-          <div class="checklist-item" onclick="pmToggleCheck(this)"><span class="check-icon">⬜</span>Checked economic calendar</div>
-          <div class="checklist-item" onclick="pmToggleCheck(this)"><span class="check-icon">⬜</span>Reviewed sector strength</div>
-          <div class="checklist-item" onclick="pmToggleCheck(this)"><span class="check-icon">⬜</span>Identified watchlist tickers</div>
-          <div class="checklist-item" onclick="pmToggleCheck(this)"><span class="check-icon">⬜</span>Set daily max loss limit</div>
-          <div class="checklist-item" onclick="pmToggleCheck(this)"><span class="check-icon">⬜</span>Reviewed yesterday's trades</div>
-          <div class="checklist-item" onclick="pmToggleCheck(this)"><span class="check-icon">⬜</span>Platform & charts ready</div>
-        </div>
-        <div id="checkProgress" style="margin-top:10px;font-size:10px;color:#6b7280;font-family:'JetBrains Mono',monospace;text-align:center">0 / 8 complete</div>
+      <div class="bias-btn" id="biasBear" onclick="pmSetBias('bear')">
+        <span class="bias-emoji">🐻</span>
+        <span class="bias-label">Bear</span>
       </div>
     </div>
 
-    <!-- COL 2 -->
-    <div class="flex flex-col gap-5">
-      <!-- KEY LEVELS -->
-      <div class="pm-glass">
-        <div class="section-title">📍 Key Levels</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
-          <div style="background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:14px 16px"><label class="field-lbl" style="color:#4ade80">SPX / SPY</label><input type="number" id="spxLevel" placeholder="e.g. 5820" step="0.5"></div>
-          <div style="background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:14px 16px"><label class="field-lbl" style="color:#fb923c">PM High</label><input type="number" id="pmHigh" placeholder="Pre-mkt high" step="0.01"></div>
-          <div style="background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:14px 16px"><label class="field-lbl" style="color:#f87171">PM Low</label><input type="number" id="pmLow" placeholder="Pre-mkt low" step="0.01"></div>
-          <div style="background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:14px 16px"><label class="field-lbl" style="color:#FFD700">Prev Day Close</label><input type="number" id="pdClose" placeholder="Prev close" step="0.01"></div>
-        </div>
-        <div>
-          <label class="field-lbl">Support Levels</label>
-          <div id="supportLevels"><div class="level-row"><input type="number" placeholder="Level $" step="0.01"><input type="text" placeholder="Note"><button onclick="pmRemoveLevel(this)" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);color:#f87171;padding:7px 10px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:700">✕</button></div></div>
-          <button onclick="pmAddLevel('support')" style="width:100%;background:rgba(34,197,94,0.06);border:1px dashed rgba(34,197,94,0.25);color:#4ade80;padding:7px;border-radius:7px;cursor:pointer;font-size:10px;font-weight:700;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.08em;margin-top:4px">+ Add Support</button>
-        </div>
-        <div class="mt-3">
-          <label class="field-lbl">Resistance Levels</label>
-          <div id="resistanceLevels"><div class="level-row"><input type="number" placeholder="Level $" step="0.01"><input type="text" placeholder="Note"><button onclick="pmRemoveLevel(this)" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);color:#f87171;padding:7px 10px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:700">✕</button></div></div>
-          <button onclick="pmAddLevel('resistance')" style="width:100%;background:rgba(239,68,68,0.06);border:1px dashed rgba(239,68,68,0.25);color:#f87171;padding:7px;border-radius:7px;cursor:pointer;font-size:10px;font-weight:700;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.08em;margin-top:4px">+ Add Resistance</button>
-        </div>
-      </div>
-      <!-- SETUPS -->
-      <div class="pm-glass">
-        <div class="section-title">🎯 Setups to Watch</div>
-        <div class="tg-group" id="pmSetupWatch" style="margin-bottom:10px">
-          <div class="tg-btn" style="--bc:#00FFCC;color:#00FFCC;flex:none" data-v="5/12 CURL">5/12 CURL</div>
-          <div class="tg-btn" style="--bc:#00D9FF;color:#00D9FF;flex:none" data-v="5/12 REJECT">5/12 REJECT</div>
-          <div class="tg-btn" style="--bc:#4ade80;color:#4ade80;flex:none" data-v="34/50 Bounce">34/50</div>
-          <div class="tg-btn" style="--bc:#fb923c;color:#fb923c;flex:none" data-v="PM HI Break">PM HI</div>
-          <div class="tg-btn" style="--bc:#a78bfa;color:#a78bfa;flex:none" data-v="PM Low Break">PM LOW</div>
-          <div class="tg-btn" style="--bc:#FFD700;color:#FFD700;flex:none" data-v="PD CL Bounce">PD CL</div>
-          <div class="tg-btn" style="--bc:#f59e0b;color:#f59e0b;flex:none" data-v="PD HI Brko">PD HI</div>
-          <div class="tg-btn" style="--bc:#ec4899;color:#ec4899;flex:none" data-v="ATH">ATH</div>
-        </div>
-        <div><label class="field-lbl">Setup Notes</label><textarea id="setupNotes" rows="3" placeholder="Specific setup conditions, triggers, invalidation points…"></textarea></div>
-      </div>
-    </div>
+    <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.14em;color:rgba(0,255,204,0.5);font-family:'JetBrains Mono',monospace;margin-bottom:8px">Bias Notes</div>
+    <textarea id="biasReason" class="bias-note-input" rows="5" placeholder="Overnight futures, gap direction, key catalyst, macro context…"></textarea>
 
-    <!-- COL 3 -->
-    <div class="flex flex-col gap-5">
-      <!-- WATCHLIST -->
-      <div class="pm-glass">
-        <div class="section-title">👁️ Watchlist</div>
-        <div id="watchlistRows">
-          <div class="level-row" style="grid-template-columns:1fr 80px auto">
-            <input type="text" placeholder="Ticker" style="text-transform:uppercase">
-            <select><option>CALL</option><option>PUT</option><option>Both</option></select>
-            <button onclick="pmRemoveLevel(this)" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);color:#f87171;padding:7px 10px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:700">✕</button>
-          </div>
-        </div>
-        <button onclick="pmAddWatchlistRow()" style="width:100%;background:rgba(0,255,204,0.04);border:1px dashed rgba(0,255,204,0.2);color:var(--primary);padding:7px;border-radius:7px;cursor:pointer;font-size:10px;font-weight:700;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.08em;margin-top:4px">+ Add Ticker</button>
-      </div>
-      <!-- GAME PLAN -->
-      <div class="pm-glass">
-        <div class="section-title">📝 Game Plan</div>
-        <div class="mb-3"><label class="field-lbl">If Market Opens Bullish…</label><textarea id="planBull" rows="3" placeholder="Scenario A — setups, tickers to watch…" style="border-color:rgba(34,197,94,0.15)" onfocus="this.style.borderColor='#4ade80'" onblur="this.style.borderColor='rgba(34,197,94,0.15)'"></textarea></div>
-        <div class="mb-3"><label class="field-lbl">If Market Opens Bearish…</label><textarea id="planBear" rows="3" placeholder="Scenario B — setups, tickers to watch…" style="border-color:rgba(239,68,68,0.15)" onfocus="this.style.borderColor='#f87171'" onblur="this.style.borderColor='rgba(239,68,68,0.15)'"></textarea></div>
-        <div><label class="field-lbl">What I'll Avoid Today</label><textarea id="planAvoid" rows="2" placeholder="FOMO, chasing, news spikes…" style="border-color:rgba(251,146,60,0.15)" onfocus="this.style.borderColor='#fb923c'" onblur="this.style.borderColor='rgba(251,146,60,0.15)'"></textarea></div>
-      </div>
+    <!-- BIAS INDICATOR -->
+    <div id="pmBiasIndicator" style="margin-top:16px;padding:12px 16px;border-radius:10px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.06);text-align:center;font-family:'JetBrains Mono',monospace">
+      <div style="font-size:9px;color:#4b5563;text-transform:uppercase;letter-spacing:.12em;margin-bottom:4px">Today's Stance</div>
+      <div id="pmBiasDisplay" style="font-size:20px;font-weight:900;color:#6b7280">— NEUTRAL —</div>
     </div>
   </div>
 
-  <!-- SAVED PLANS -->
-  <div class="pm-glass mb-6">
-    <div class="section-title">📚 Saved Plans</div>
-    <div id="savedPlansList"><div style="color:#4b5563;font-size:12px;font-family:'JetBrains Mono',monospace;text-align:center;padding:20px">No saved plans yet — fill out the form above and hit Save Plan</div></div>
+  <!-- RIGHT: WATCHLIST -->
+  <div class="pm-watchlist-panel">
+    <div class="pm-wl-header">
+      <div class="pm-wl-title">👁 Watchlist</div>
+      <div style="font-size:9px;color:#4b5563;font-family:'JetBrains Mono',monospace" id="pmWlCount">0 tickers</div>
+    </div>
+
+    <table class="wl-table">
+      <thead>
+        <tr>
+          <th>Ticker</th>
+          <th>Levels</th>
+          <th class="col-dir">Direction</th>
+          <th>Catalyst</th>
+          <th>Setup</th>
+          <th style="width:40px"></th>
+        </tr>
+      </thead>
+      <tbody id="pmWatchlistBody"></tbody>
+    </table>
+    <button class="pm-add-row-btn" onclick="pmAddWatchRow()">Add Ticker</button>
   </div>
+
+</div>
+
+<!-- RESPONSIVE override for narrow screens -->
+<style>
+@media(max-width:900px){.pm-main-grid{grid-template-columns:1fr !important}}
+</style>
+
+<!-- SAVED PLANS -->
+<div style="margin-top:24px;background:rgba(6,10,18,0.9);border:1px solid rgba(0,255,204,0.1);border-radius:18px;overflow:hidden;position:relative;">
+  <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--accent),transparent)"></div>
+  <div style="padding:16px 24px;border-bottom:1px solid rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:space-between">
+    <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.18em;color:rgba(255,215,0,0.5);font-family:'JetBrains Mono',monospace;display:flex;align-items:center;gap:8px"><span>📚</span>Saved Plans</div>
+    <div id="pmSavedCount" style="font-size:9px;color:#4b5563;font-family:'JetBrains Mono',monospace"></div>
+  </div>
+  <div id="savedPlansList" style="padding:16px 20px">
+    <div style="color:#374151;font-size:11px;font-family:'JetBrains Mono',monospace;text-align:center;padding:16px">No saved plans yet</div>
+  </div>
+</div>
 
 </div><!-- /page-premarket -->
 
@@ -839,7 +944,7 @@ let openClose=new Set(), openEdit=new Set(), collapsedGrp=new Set();
 let chartRange='all', tickerRange='today', metricPeriod='daily';
 let mgrOpen=true, pendingDel=null;
 let currentJournalTradeId=null, journalRating=0;
-let pmBias='Neutral', pmMood='🙂', pmSession='Regular';
+let pmBias='neutral';
 
 // ═══ PAGE SWITCHER ═══
 function switchPage(page){
@@ -1361,51 +1466,141 @@ document.addEventListener('keydown',e=>{
 });
 
 // ═══ PRE-MARKET FUNCTIONS ═══
-function pmSetBias(v,el){pmBias=v;document.querySelectorAll('[data-bias]').forEach(b=>b.classList.remove('on'));el.classList.add('on');}
-function pmSetMood(el){document.querySelectorAll('.mood-btn').forEach(x=>x.classList.remove('on'));el.classList.add('on');pmMood=el.dataset.mood;}
-function pmToggleCheck(el){el.classList.toggle('done');el.querySelector('.check-icon').textContent=el.classList.contains('done')?'✅':'⬜';pmUpdateCheckProgress();}
-function pmUpdateCheckProgress(){const all=document.querySelectorAll('.checklist-item');const done=document.querySelectorAll('.checklist-item.done');$('checkProgress').textContent=`${done.length} / ${all.length} complete`;$('checkProgress').style.color=done.length===all.length?'#4ade80':'#6b7280';}
-function pmAddLevel(type){const container=$(type+'Levels');const row=document.createElement('div');row.className='level-row';row.innerHTML=`<input type="number" placeholder="Level $" step="0.01"><input type="text" placeholder="Note"><button onclick="pmRemoveLevel(this)" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);color:#f87171;padding:7px 10px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:700">✕</button>`;container.appendChild(row);}
-function pmRemoveLevel(btn){btn.closest('.level-row').remove();}
-function pmAddWatchlistRow(){const container=$('watchlistRows');const row=document.createElement('div');row.className='level-row';row.style.gridTemplateColumns='1fr 80px auto';row.innerHTML=`<input type="text" placeholder="Ticker" style="text-transform:uppercase"><select><option>CALL</option><option>PUT</option><option>Both</option></select><button onclick="pmRemoveLevel(this)" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);color:#f87171;padding:7px 10px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:700">✕</button>`;container.appendChild(row);}
-function pmGetLevelData(containerId){return Array.from($(containerId).querySelectorAll('.level-row')).map(row=>{const inputs=row.querySelectorAll('input');return{level:inputs[0].value,note:inputs[1]?.value||''}}).filter(x=>x.level);}
-function pmGetWatchlist(){return Array.from($('watchlistRows').querySelectorAll('.level-row')).map(row=>{const ticker=row.querySelector('input')?.value?.trim().toUpperCase();const dir=row.querySelector('select')?.value;return{ticker,dir}}).filter(x=>x.ticker);}
-function pmGetSetups(){return Array.from(document.querySelectorAll('#pmSetupWatch .tg-btn.on')).map(b=>b.dataset.v);}
-function pmSavePlan(){
-  const planDate=$('planDate').value;if(!planDate){showToast('error','No Date','Select a plan date first.');return;}
-  const plan={id:Date.now().toString(36),date:planDate,session:pmSession,bias:pmBias,mood:pmMood,riskPct:$('riskSlider').value,maxLoss:$('maxLoss').value,biasReason:$('biasReason').value,spxLevel:$('spxLevel').value,pmHigh:$('pmHigh').value,pmLow:$('pmLow').value,pdClose:$('pdClose').value,support:pmGetLevelData('supportLevels'),resistance:pmGetLevelData('resistanceLevels'),setups:pmGetSetups(),setupNotes:$('setupNotes').value,watchlist:pmGetWatchlist(),planBull:$('planBull').value,planBear:$('planBear').value,planAvoid:$('planAvoid').value};
-  const existing=pmPlans.findIndex(p=>p.date===planDate);if(existing>-1)pmPlans[existing]=plan;else pmPlans.unshift(plan);
-  localStorage.setItem('stellium_preplans',JSON.stringify(pmPlans));pmRenderSavedPlans();showToast('success','Plan Saved',`Pre-market plan for ${pmFmtDate(planDate)} saved.`);
-}
-function pmClearForm(){
-  $('biasReason').value='';$('spxLevel').value='';$('pmHigh').value='';$('pmLow').value='';$('pdClose').value='';$('setupNotes').value='';$('planBull').value='';$('planBear').value='';$('planAvoid').value='';$('maxLoss').value='';$('riskSlider').value=50;$('riskLabel').textContent='50%';
-  document.querySelectorAll('#pmSetupWatch .tg-btn').forEach(b=>b.classList.remove('on'));document.querySelectorAll('.checklist-item').forEach(el=>{el.classList.remove('done');el.querySelector('.check-icon').textContent='⬜';});pmUpdateCheckProgress();showToast('info','Cleared','Form reset for new plan.');
-}
-function pmLoadPlan(id){
-  const plan=pmPlans.find(p=>p.id===id);if(!plan)return;
-  $('planDate').value=plan.date;$('biasReason').value=plan.biasReason||'';$('spxLevel').value=plan.spxLevel||'';$('pmHigh').value=plan.pmHigh||'';$('pmLow').value=plan.pmLow||'';$('pdClose').value=plan.pdClose||'';$('setupNotes').value=plan.setupNotes||'';$('planBull').value=plan.planBull||'';$('planBear').value=plan.planBear||'';$('planAvoid').value=plan.planAvoid||'';$('maxLoss').value=plan.maxLoss||'';$('riskSlider').value=plan.riskPct||50;$('riskLabel').textContent=(plan.riskPct||50)+'%';
-  pmBias=plan.bias||'Neutral';document.querySelectorAll('[data-bias]').forEach(b=>b.classList.toggle('on',b.dataset.bias===pmBias));
-  pmSession=plan.session||'Regular';document.querySelectorAll('#sessionSel .tg-btn').forEach(b=>b.classList.toggle('on',b.dataset.val===pmSession));
-  pmMood=plan.mood||'🙂';document.querySelectorAll('.mood-btn').forEach(b=>b.classList.toggle('on',b.dataset.mood===pmMood));
-  document.querySelectorAll('#pmSetupWatch .tg-btn').forEach(b=>b.classList.toggle('on',(plan.setups||[]).includes(b.dataset.v)));
-  window.scrollTo({top:0,behavior:'smooth'});showToast('info','Plan Loaded',`${pmFmtDate(plan.date)} plan loaded.`);
-}
-function pmDeletePlan(id){if(!confirm('Delete this plan?'))return;pmPlans=pmPlans.filter(p=>p.id!==id);localStorage.setItem('stellium_preplans',JSON.stringify(pmPlans));pmRenderSavedPlans();showToast('info','Deleted','Plan removed.');}
-function pmFmtDate(str){return new Date(str+'T12:00:00').toLocaleDateString([],{weekday:'short',month:'short',day:'numeric',year:'numeric'})}
-function pmRenderSavedPlans(){
-  const el=$('savedPlansList');
-  if(!pmPlans.length){el.innerHTML='<div style="color:#4b5563;font-size:12px;font-family:JetBrains Mono,monospace;text-align:center;padding:20px">No saved plans yet</div>';return;}
-  el.innerHTML=pmPlans.slice(0,15).map(p=>{
-    const bCls=p.bias==='Bull'?'b-bull':p.bias==='Bear'?'b-bear':'b-neut';const bLabel=p.bias==='Bull'?'🐂 Bull':p.bias==='Bear'?'🐻 Bear':'⚖️ Flat';
-    const watchTickers=(p.watchlist||[]).map(w=>`<span style="background:rgba(0,255,204,0.08);border:1px solid rgba(0,255,204,0.2);border-radius:5px;padding:1px 6px;font-size:9px;color:var(--primary);font-family:'JetBrains Mono',monospace;font-weight:700">${w.ticker}</span>`).join('');
-    const setupTags=(p.setups||[]).slice(0,4).map(s=>`<span style="background:rgba(0,217,255,0.08);border:1px solid rgba(0,217,255,0.2);border-radius:5px;padding:1px 6px;font-size:8px;color:var(--secondary);font-family:'JetBrains Mono',monospace">${s}</span>`).join('');
-    return`<div class="saved-plan"><div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:8px"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span style="font-weight:900;color:#fff;font-family:'JetBrains Mono',monospace;font-size:12px">${pmFmtDate(p.date)}</span><span class="badge-sm ${bCls}">${bLabel}</span><span style="font-size:12px">${p.mood||'🙂'}</span>${p.session&&p.session!=='Regular'?`<span style="font-size:9px;background:rgba(255,215,0,0.1);border:1px solid rgba(255,215,0,0.2);border-radius:4px;padding:2px 6px;color:#FFD700;font-family:'JetBrains Mono',monospace;font-weight:800">${p.session}</span>`:''} ${p.maxLoss?`<span style="font-size:9px;color:#f87171;font-family:'JetBrains Mono',monospace">Max: $${p.maxLoss}</span>`:''}</div><div style="display:flex;gap:6px"><button onclick="pmLoadPlan('${p.id}')" style="background:rgba(0,255,204,0.08);border:1px solid rgba(0,255,204,0.2);color:var(--primary);padding:4px 12px;border-radius:6px;cursor:pointer;font-size:10px;font-weight:700;font-family:'JetBrains Mono',monospace">✏️ Load</button><button onclick="pmDeletePlan('${p.id}')" style="background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.2);color:#f87171;padding:4px 12px;border-radius:6px;cursor:pointer;font-size:10px;font-weight:700;font-family:'JetBrains Mono',monospace">🗑️</button></div></div>${watchTickers?`<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px"><span style="font-size:8px;color:#4b5563;font-family:'JetBrains Mono',monospace;align-self:center">WATCH:</span>${watchTickers}</div>`:''}${setupTags?`<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px">${setupTags}</div>`:''}${p.biasReason?`<div style="font-size:11px;color:#9ca3af;line-height:1.5;margin-top:4px">"${p.biasReason.slice(0,120)}${p.biasReason.length>120?'…':''}"</div>`:''}</div>`;
-  }).join('');
+
+function pmSetBias(v) {
+  pmBias = v;
+  ['Bull','Neut','Bear'].forEach(b => {
+    const el = document.getElementById('bias'+b);
+    if(el) el.className = 'bias-btn';
+  });
+  const map = {bull:'Bull',neutral:'Neut',bear:'Bear'};
+  const el = document.getElementById('bias'+(map[v]||'Neut'));
+  if(el) el.classList.add('active-'+v);
+  const panel = document.getElementById('pmBiasPanel');
+  if(panel) panel.className = 'pm-bias-panel ' + v;
+  const display = document.getElementById('pmBiasDisplay');
+  if(display) {
+    const cfg = {bull:{txt:'— BULLISH —',c:'#4ade80'}, neutral:{txt:'— NEUTRAL —',c:'#9ca3af'}, bear:{txt:'— BEARISH —',c:'#f87171'}};
+    const d = cfg[v]||cfg.neutral;
+    display.textContent = d.txt; display.style.color = d.c;
+  }
 }
 
-// Session toggle for pre-market
-document.querySelectorAll('#sessionSel .tg-btn').forEach(b=>{b.onclick=function(){document.querySelectorAll('#sessionSel .tg-btn').forEach(x=>x.classList.remove('on'));this.classList.add('on');pmSession=this.dataset.val;}});
-document.querySelectorAll('#pmSetupWatch .tg-btn').forEach(b=>{b.onclick=function(){this.classList.toggle('on');}});
+function pmAddWatchRow() {
+  const tbody = document.getElementById('pmWatchlistBody');
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><input class="wl-input wl-ticker-input" placeholder="AAPL" maxlength="10"></td>
+    <td><input class="wl-input" placeholder="e.g. 215 / 220" style="font-size:11px;color:#e2e8f0"></td>
+    <td><div class="dir-toggle"><span class="dir-btn" onclick="pmToggleDir(this,'long')">Long</span><span class="dir-btn" onclick="pmToggleDir(this,'short')">Short</span></div></td>
+    <td><input class="wl-input" placeholder="Earnings, news…" style="font-size:11px;color:#9ca3af"></td>
+    <td><input class="wl-input" placeholder="5/12 curl, PM Hi…" style="font-size:11px;color:#a78bfa"></td>
+    <td><button class="wl-del-btn" onclick="this.closest('tr').remove();pmUpdateWlCount()">✕</button></td>`;
+  tbody.appendChild(tr);
+  pmUpdateWlCount();
+  tr.querySelector('input').focus();
+}
+
+function pmToggleDir(btn, dir) {
+  const group = btn.closest('.dir-toggle');
+  group.querySelectorAll('.dir-btn').forEach(b => b.className = 'dir-btn');
+  btn.classList.add(dir === 'long' ? 'long-on' : 'short-on');
+}
+
+function pmUpdateWlCount() {
+  const rows = document.querySelectorAll('#pmWatchlistBody tr').length;
+  const el = document.getElementById('pmWlCount');
+  if(el) el.textContent = rows + ' ticker' + (rows !== 1 ? 's' : '');
+}
+
+function pmGetWatchlist() {
+  return Array.from(document.querySelectorAll('#pmWatchlistBody tr')).map(tr => {
+    const inputs = tr.querySelectorAll('input');
+    const longBtn = tr.querySelector('.long-on');
+    const shortBtn = tr.querySelector('.short-on');
+    return { ticker:inputs[0]?.value.trim().toUpperCase(), levels:inputs[1]?.value.trim(), direction:longBtn?'Long':shortBtn?'Short':'', catalyst:inputs[2]?.value.trim(), setup:inputs[3]?.value.trim() };
+  }).filter(r => r.ticker);
+}
+
+function pmSavePlan() {
+  const planDate = document.getElementById('planDate').value;
+  if(!planDate) { showToast('error','No Date','Select a plan date first.'); return; }
+  const plan = { id:Date.now().toString(36), date:planDate, bias:pmBias, biasReason:document.getElementById('biasReason').value, watchlist:pmGetWatchlist() };
+  const existing = pmPlans.findIndex(p => p.date === planDate);
+  if(existing > -1) pmPlans[existing] = plan; else pmPlans.unshift(plan);
+  localStorage.setItem('stellium_preplans', JSON.stringify(pmPlans));
+  pmRenderSavedPlans();
+  showToast('success','Plan Saved', pmFmtDate(planDate));
+}
+
+function pmClearForm() {
+  document.getElementById('biasReason').value = '';
+  document.getElementById('pmWatchlistBody').innerHTML = '';
+  pmSetBias('neutral');
+  pmUpdateWlCount();
+  showToast('info','Cleared','Form reset.');
+}
+
+function pmLoadPlan(id) {
+  const plan = pmPlans.find(p => p.id === id); if(!plan) return;
+  document.getElementById('planDate').value = plan.date;
+  document.getElementById('biasReason').value = plan.biasReason || '';
+  pmSetBias(plan.bias || 'neutral');
+  document.getElementById('pmWatchlistBody').innerHTML = '';
+  (plan.watchlist || []).forEach(w => {
+    pmAddWatchRow();
+    const rows = document.querySelectorAll('#pmWatchlistBody tr');
+    const tr = rows[rows.length - 1];
+    const inputs = tr.querySelectorAll('input');
+    if(inputs[0]) inputs[0].value = w.ticker || '';
+    if(inputs[1]) inputs[1].value = w.levels || '';
+    if(inputs[2]) inputs[2].value = w.catalyst || '';
+    if(inputs[3]) inputs[3].value = w.setup || '';
+    if(w.direction === 'Long') { const lb = tr.querySelector('.dir-btn'); if(lb) pmToggleDir(lb,'long'); }
+    else if(w.direction === 'Short') { const btns = tr.querySelectorAll('.dir-btn'); if(btns[1]) pmToggleDir(btns[1],'short'); }
+  });
+  pmUpdateWlCount();
+  window.scrollTo({top:0,behavior:'smooth'});
+  showToast('info','Plan Loaded', pmFmtDate(plan.date));
+}
+
+function pmDeletePlan(id) {
+  if(!confirm('Delete this plan?')) return;
+  pmPlans = pmPlans.filter(p => p.id !== id);
+  localStorage.setItem('stellium_preplans', JSON.stringify(pmPlans));
+  pmRenderSavedPlans();
+  showToast('info','Deleted','Plan removed.');
+}
+
+function pmFmtDate(str) { return new Date(str+'T12:00:00').toLocaleDateString([],{weekday:'short',month:'short',day:'numeric',year:'numeric'}) }
+
+function pmRenderSavedPlans() {
+  const el = document.getElementById('savedPlansList');
+  const cnt = document.getElementById('pmSavedCount');
+  if(cnt) cnt.textContent = pmPlans.length + ' saved';
+  if(!pmPlans.length) { el.innerHTML='<div style="color:#374151;font-size:11px;font-family:JetBrains Mono,monospace;text-align:center;padding:16px">No saved plans yet</div>'; return; }
+  const biasIcon = {bull:'🐂',neutral:'⚖️',bear:'🐻'};
+  const biasColor = {bull:'#4ade80',neutral:'#9ca3af',bear:'#f87171'};
+  el.innerHTML = pmPlans.slice(0,20).map(p => {
+    const tickers = (p.watchlist||[]).map(w => {
+      const dc = w.direction==='Long'?'rgba(34,197,94,0.15)':w.direction==='Short'?'rgba(239,68,68,0.15)':'rgba(0,255,204,0.08)';
+      const tc = w.direction==='Long'?'#4ade80':w.direction==='Short'?'#f87171':'var(--primary)';
+      return `<span style="background:${dc};border:1px solid ${tc}33;border-radius:5px;padding:2px 7px;font-size:9px;color:${tc};font-family:'JetBrains Mono',monospace;font-weight:800">${w.ticker}${w.direction?' · '+w.direction[0]:''}</span>`;
+    }).join('');
+    return `<div class="pm-saved-strip">
+      <span style="font-size:20px">${biasIcon[p.bias]||'⚖️'}</span>
+      <div>
+        <div style="font-size:12px;font-weight:900;color:${biasColor[p.bias]||'#9ca3af'};font-family:'JetBrains Mono',monospace">${pmFmtDate(p.date)}</div>
+        ${p.biasReason?`<div style="font-size:10px;color:#6b7280;margin-top:2px;font-style:italic">"${p.biasReason.slice(0,80)}${p.biasReason.length>80?'…':''}"</div>`:''}
+      </div>
+      ${tickers?`<div style="display:flex;gap:4px;flex-wrap:wrap;flex:1">${tickers}</div>`:''}
+      <div style="display:flex;gap:6px;flex-shrink:0">
+        <button onclick="pmLoadPlan('${p.id}')" style="background:rgba(0,255,204,0.08);border:1px solid rgba(0,255,204,0.2);color:var(--primary);padding:5px 12px;border-radius:6px;cursor:pointer;font-size:10px;font-weight:700;font-family:'JetBrains Mono',monospace" onmouseover="this.style.background='rgba(0,255,204,0.18)'" onmouseout="this.style.background='rgba(0,255,204,0.08)'">✏️ Load</button>
+        <button onclick="pmDeletePlan('${p.id}')" style="background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.2);color:#f87171;padding:5px 12px;border-radius:6px;cursor:pointer;font-size:10px;font-weight:700;font-family:'JetBrains Mono',monospace" onmouseover="this.style.background='rgba(239,68,68,0.18)'" onmouseout="this.style.background='rgba(239,68,68,0.06)'">🗑️</button>
+      </div>
+    </div>`;
+  }).join('');
+}
 
 // ═══ MASTER RENDER ═══
 function render(){save();renderImportBatches();renderMgr();renderMetrics();renderProfile();renderTable();updateCharts();}
@@ -1414,7 +1609,16 @@ function setTodayDay(){const fullNames=['Sunday','Monday','Tuesday','Wednesday',
 // ═══ INIT ═══
 window.onload=()=>{
   initCharts();$('currentDateDisplay').textContent=new Date().toDateString();
-  $('planDate').value=new Date().toISOString().split('T')[0];
+  const now = new Date();
+  const days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  document.getElementById('planDate').value = now.toISOString().split('T')[0];
+  const dayEl = document.getElementById('pmDayLabel');
+  if(dayEl) dayEl.textContent = days[now.getDay()];
+  document.getElementById('planDate').addEventListener('change',function(){
+    const d=new Date(this.value+'T12:00:00');
+    if(dayEl) dayEl.textContent = days[d.getDay()]||'';
+  });
+  pmAddWatchRow();
   setTodayDay();migrateTimestamps();initParticles();initTilt();initCursorGlow();
   render();updateTape();pmRenderSavedPlans();
   setTimeout(()=>showToast('info','Stellium Elite','Press ⌘K for commands · ? for shortcuts',4000),800);
