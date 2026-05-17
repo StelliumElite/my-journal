@@ -849,6 +849,18 @@ body.pm-active #particleCanvas{display:none!important;}
 #savedPlansList .pm-saved-strip [style*="color:#9ca3af"]{color:#64748b !important;}
 #savedPlansList .pm-saved-strip [style*="color:#6b7280"]{color:#64748b !important;}
 
+
+/* EOD REVIEW textarea */
+.wl-eod-input{
+  width:100%;background:rgba(255,251,235,0.7);border:1px solid rgba(245,158,11,0.2);
+  color:#1e293b;padding:6px 8px;border-radius:8px;
+  font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;
+  outline:none;resize:none;line-height:1.5;transition:border-color .2s;
+  min-height:48px;
+}
+.wl-eod-input::placeholder{color:#d1a84a;font-weight:400;}
+.wl-eod-input:focus{border-color:#f59e0b;background:rgba(255,251,235,0.9);box-shadow:0 0 0 2px rgba(245,158,11,0.1);}
+
 @media(max-width:960px){
   .pm-main-grid{grid-template-columns:1fr !important}
   .wl-levels-wrap{flex-wrap:wrap;}
@@ -947,10 +959,11 @@ body.pm-active #particleCanvas{display:none!important;}
         <tr>
           <th style="width:30px"></th><!-- star -->
           <th style="width:110px">Ticker</th>
-          <th style="width:120px">Direction</th>
+          <th style="width:110px">Direction</th>
           <th style="min-width:180px">Levels</th>
-          <th style="min-width:130px">Setup</th>
-          <th>Catalyst</th>
+          <th style="min-width:120px">Setup</th>
+          <th style="min-width:110px">Catalyst</th>
+          <th style="min-width:160px">EOD Review</th>
           <th style="width:32px"></th>
         </tr>
       </thead>
@@ -1610,21 +1623,40 @@ document.addEventListener('keydown',e=>{
 
 function pmSetBias(v) {
   pmBias = v;
-  ['Bull','Neut','Bear'].forEach(b => {
-    const el = document.getElementById('bias'+b);
-    if(el) el.className = 'bias-btn';
+  // Show only the selected bias button, hide others
+  const bMap = {bull:'Bull', neutral:'Neut', bear:'Bear'};
+  Object.entries(bMap).forEach(([key, id]) => {
+    const el = document.getElementById('bias'+id);
+    if(!el) return;
+    el.className = 'bias-btn';
+    if(key === v) {
+      el.classList.add('active-'+v);
+      el.style.display = '';   // show selected
+    } else {
+      el.style.display = 'none'; // hide unselected
+    }
   });
-  const map = {bull:'Bull',neutral:'Neut',bear:'Bear'};
-  const el = document.getElementById('bias'+(map[v]||'Neut'));
-  if(el) el.classList.add('active-'+v);
   const panel = document.getElementById('pmBiasPanel');
   if(panel) panel.className = 'pm-bias-panel ' + v;
   const display = document.getElementById('pmBiasDisplay');
   if(display) {
-    const cfg = {bull:{txt:'— BULLISH —',c:'#4ade80'}, neutral:{txt:'— NEUTRAL —',c:'#9ca3af'}, bear:{txt:'— BEARISH —',c:'#f87171'}};
+    const cfg = {bull:{txt:'— BULLISH —',c:'#15803d'}, neutral:{txt:'— NEUTRAL —',c:'#64748b'}, bear:{txt:'— BEARISH —',c:'#dc2626'}};
     const d = cfg[v]||cfg.neutral;
     display.textContent = d.txt; display.style.color = d.c;
   }
+}
+
+// Reset bias selector back to show all 3 options
+function pmResetBias() {
+  pmBias = 'neutral';
+  ['Bull','Neut','Bear'].forEach(id => {
+    const el = document.getElementById('bias'+id);
+    if(el) { el.className = 'bias-btn'; el.style.display = ''; }
+  });
+  const panel = document.getElementById('pmBiasPanel');
+  if(panel) panel.className = 'pm-bias-panel neutral';
+  const display = document.getElementById('pmBiasDisplay');
+  if(display) { display.textContent = '— NEUTRAL —'; display.style.color = '#64748b'; }
 }
 
 function pmBuildLevelCells(dir) {
@@ -1649,52 +1681,62 @@ function pmBuildLevelCells(dir) {
   }
 }
 
+function pmTickerColor(dir) {
+  // Long = deep teal-green, Short = deep crimson-red, neutral = near-black
+  return dir === 'long' ? '#065f46' : dir === 'short' ? '#7f1d1d' : '#0f172a';
+}
+
 function pmAddWatchRow(prefill) {
   const tbody = document.getElementById('pmWatchlistBody');
   const tr = document.createElement('tr');
   tr.dataset.focused = '0';
   const dir = prefill?.direction?.toLowerCase() || '';
+  const tickerColor = pmTickerColor(dir);
+
+  // Direction buttons: show both, but if dir is set hide the other
+  const longDisplay = dir === 'short' ? 'display:none' : '';
+  const shortDisplay = dir === 'long' ? 'display:none' : '';
 
   tr.innerHTML = `
-    <td style="padding:6px 8px 6px 12px;vertical-align:middle">
-      <button class="focus-star-btn ${prefill?.focus?'starred':''}" onclick="pmToggleFocus(this)" title="Mark as Main Focus">⭐</button>
+    <td>
+      <button class="focus-star-btn ${prefill?.focus?'starred':''}" onclick="pmToggleFocus(this)" title="Main Focus">⭐</button>
     </td>
-    <td style="padding:6px 10px;vertical-align:top;padding-top:10px">
+    <td>
       <div class="wl-ticker-wrap">
-        <input class="wl-ticker-input" placeholder="AAPL" maxlength="10" value="${prefill?.ticker||''}">
+        <input class="wl-ticker-input" placeholder="AAPL" maxlength="10" value="${prefill?.ticker||''}" style="color:${tickerColor}">
       </div>
       <div class="wl-focus-badge">⭐ Focus</div>
     </td>
-    <td style="padding:6px 10px;vertical-align:top;padding-top:10px">
-      <div class="dir-cell">
-        <div class="dir-toggle-new">
-          <span class="dir-btn-new ${dir==='long'?'long-on':''}" onclick="pmToggleDir(this,'long')">Long</span>
-          <span class="dir-btn-new ${dir==='short'?'short-on':''}" onclick="pmToggleDir(this,'short')">Short</span>
-        </div>
+    <td>
+      <div class="dir-toggle-new">
+        <span class="dir-btn-new ${dir==='long'?'long-on':''}" style="${longDisplay}" onclick="pmToggleDir(this,'long')">Long</span>
+        <span class="dir-btn-new ${dir==='short'?'short-on':''}" style="${shortDisplay}" onclick="pmToggleDir(this,'short')">Short</span>
       </div>
     </td>
-    <td style="padding:6px 10px;vertical-align:top;padding-top:8px" class="wl-levels-td">
+    <td class="wl-levels-td">
       ${pmBuildLevelCells(dir)}
     </td>
-    <td style="padding:6px 10px;vertical-align:top;padding-top:10px">
+    <td>
       <input class="wl-text-input" placeholder="5/12 curl, PM Hi…" value="${prefill?.setup||''}">
     </td>
-    <td style="padding:6px 10px;vertical-align:top;padding-top:10px">
+    <td>
       <input class="wl-text-input" placeholder="Earnings, news, catalyst…" value="${prefill?.catalyst||''}">
     </td>
-    <td style="padding:6px 8px;vertical-align:middle">
+    <td>
+      <textarea class="wl-eod-input" placeholder="EOD notes…" rows="2">${prefill?.eod||''}</textarea>
+    </td>
+    <td>
       <button class="wl-del-btn" onclick="this.closest('tr').remove();pmUpdateWlCount()">✕</button>
     </td>`;
 
   tbody.appendChild(tr);
 
-  // Restore saved level values if prefilling
+  // Restore saved level values
   if(prefill?.levels && Array.isArray(prefill.levels)) {
     const inputs = tr.querySelectorAll('.level-input');
     prefill.levels.forEach((v,i) => { if(inputs[i]) inputs[i].value = v; });
   }
 
-  // Focus state
   if(prefill?.focus) pmApplyFocusStyle(tr, true);
 
   pmUpdateWlCount();
@@ -1703,15 +1745,23 @@ function pmAddWatchRow(prefill) {
 
 function pmToggleDir(btn, dir) {
   const row = btn.closest('tr');
-  // Toggle active state — hide the other
   const btns = btn.closest('.dir-toggle-new').querySelectorAll('.dir-btn-new');
   const wasOn = btn.classList.contains(dir+'-on');
-  btns.forEach(b => b.className = 'dir-btn-new');
+  btns.forEach(b => { b.className = 'dir-btn-new'; b.style.display = ''; });
   const newDir = wasOn ? '' : dir;
-  if(!wasOn) btn.classList.add(dir+'-on');
-  // Rebuild level cells for this direction
+  if(!wasOn) {
+    btn.classList.add(dir+'-on');
+    // Hide the opposite button
+    btns.forEach(b => {
+      if(!b.classList.contains(dir+'-on')) b.style.display = 'none';
+    });
+  }
+  // Rebuild level cells
   const td = row.querySelector('.wl-levels-td');
   if(td) td.innerHTML = pmBuildLevelCells(newDir);
+  // Update ticker color for Long/Short
+  const tickerInput = row.querySelector('.wl-ticker-input');
+  if(tickerInput) tickerInput.style.color = pmTickerColor(newDir);
 }
 
 function pmToggleFocus(btn) {
@@ -1754,11 +1804,12 @@ function pmGetWatchlist() {
     const direction = longBtn ? 'Long' : shortBtn ? 'Short' : '';
     const levels = Array.from(tr.querySelectorAll('.level-input')).map(i => i.value.trim());
     const inputs = tr.querySelectorAll('.wl-text-input');
+    const eod = tr.querySelector('.wl-eod-input')?.value.trim() || '';
     return {
       ticker, direction, levels,
       setup: inputs[0]?.value.trim(),
       catalyst: inputs[1]?.value.trim(),
-      focus: tr.dataset.focused === '1'
+      eod, focus: tr.dataset.focused === '1'
     };
   }).filter(r => r.ticker);
 }
@@ -1766,7 +1817,7 @@ function pmGetWatchlist() {
 function pmSavePlan() {
   const planDate = document.getElementById('planDate').value;
   if(!planDate) { showToast('error','No Date','Select a plan date first.'); return; }
-  const plan = { id:Date.now().toString(36), date:planDate, bias:pmBias, biasReason:document.getElementById('biasReason').value, watchlist:pmGetWatchlist() };
+  const plan = { id:Date.now().toString(36), date:planDate, savedAt:new Date().toISOString(), bias:pmBias, biasReason:document.getElementById('biasReason').value, watchlist:pmGetWatchlist() };
   const existing = pmPlans.findIndex(p => p.date === planDate);
   if(existing > -1) pmPlans[existing] = plan; else pmPlans.unshift(plan);
   localStorage.setItem('stellium_preplans', JSON.stringify(pmPlans));
@@ -1776,8 +1827,9 @@ function pmSavePlan() {
 
 function pmClearForm() {
   document.getElementById('biasReason').value = '';
+  document.getElementById('biasReason').disabled = false;
   document.getElementById('pmWatchlistBody').innerHTML = '';
-  pmSetBias('neutral');
+  pmResetBias();
   pmUpdateWlCount();
   showToast('info','Cleared','Form reset.');
 }
@@ -1789,12 +1841,35 @@ function pmLoadPlan(id) {
   pmSetBias(plan.bias || 'neutral');
   document.getElementById('pmWatchlistBody').innerHTML = '';
   (plan.watchlist || []).forEach(w => pmAddWatchRow(w));
+  // After loading, lock form if plan is locked
+  const locked = pmPlanIsLocked(plan);
+  document.querySelectorAll('#pmWatchlistBody input, #pmWatchlistBody textarea, #pmWatchlistBody .dir-btn-new').forEach(el => {
+    if(el.classList.contains('wl-eod-input')) return; // EOD always editable
+    el.disabled = locked;
+    if(locked) el.style.opacity = '0.7';
+  });
+  document.querySelectorAll('#pmWatchlistBody .focus-star-btn, #pmWatchlistBody .wl-del-btn').forEach(el => {
+    if(el.classList.contains('wl-del-btn') && locked) { el.disabled = true; el.style.opacity='0.3'; el.title='Locked'; }
+  });
+  document.getElementById('biasReason').disabled = locked;
   pmUpdateWlCount();
   window.scrollTo({top:0,behavior:'smooth'});
   showToast('info','Plan Loaded', pmFmtDate(plan.date));
 }
 
+function pmPlanIsLocked(plan) {
+  // Lock after 24 hours from save time (or plan date if no savedAt)
+  const ref = plan.savedAt ? new Date(plan.savedAt) : new Date(plan.date+'T23:59:59');
+  return (Date.now() - ref.getTime()) > 24 * 60 * 60 * 1000;
+}
+
 function pmDeletePlan(id) {
+  const plan = pmPlans.find(p => p.id === id);
+  if(!plan) return;
+  if(pmPlanIsLocked(plan)) {
+    showToast('warning','Plan Locked','Plans are locked 24 hours after saving and cannot be deleted.');
+    return;
+  }
   if(!confirm('Delete this plan?')) return;
   pmPlans = pmPlans.filter(p => p.id !== id);
   localStorage.setItem('stellium_preplans', JSON.stringify(pmPlans));
@@ -1826,8 +1901,11 @@ function pmRenderSavedPlans() {
       </div>
       ${tickers?`<div style="display:flex;gap:4px;flex-wrap:wrap;flex:1">${tickers}</div>`:''}
       <div style="display:flex;gap:6px;flex-shrink:0">
-        <button onclick="pmLoadPlan('${p.id}')" style="background:rgba(0,255,204,0.08);border:1px solid rgba(0,255,204,0.2);color:var(--primary);padding:5px 12px;border-radius:6px;cursor:pointer;font-size:10px;font-weight:700;font-family:'JetBrains Mono',monospace" onmouseover="this.style.background='rgba(0,255,204,0.18)'" onmouseout="this.style.background='rgba(0,255,204,0.08)'">✏️ Load</button>
-        <button onclick="pmDeletePlan('${p.id}')" style="background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.2);color:#f87171;padding:5px 12px;border-radius:6px;cursor:pointer;font-size:10px;font-weight:700;font-family:'JetBrains Mono',monospace" onmouseover="this.style.background='rgba(239,68,68,0.18)'" onmouseout="this.style.background='rgba(239,68,68,0.06)'">🗑️</button>
+        <button onclick="pmLoadPlan('${p.id}')" style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.25);color:#059669;padding:5px 12px;border-radius:6px;cursor:pointer;font-size:10px;font-weight:700;font-family:'JetBrains Mono',monospace" onmouseover="this.style.background='rgba(16,185,129,0.2)'" onmouseout="this.style.background='rgba(16,185,129,0.1)'">✏️ Load</button>
+        ${pmPlanIsLocked(p)
+          ? `<span style="font-size:9px;color:#94a3b8;font-family:'JetBrains Mono',monospace;display:inline-flex;align-items:center;gap:3px;padding:5px 10px;border:1px solid rgba(0,0,0,0.08);border-radius:6px;background:rgba(0,0,0,0.04)">🔒 Locked</span>`
+          : `<button onclick="pmDeletePlan('${p.id}')" style="background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.18);color:#dc2626;padding:5px 12px;border-radius:6px;cursor:pointer;font-size:10px;font-weight:700;font-family:'JetBrains Mono',monospace" onmouseover="this.style.background='rgba(239,68,68,0.14)'" onmouseout="this.style.background='rgba(239,68,68,0.06)'">🗑️</button>`
+        }
       </div>
     </div>`;
   }).join('');
