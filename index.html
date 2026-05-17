@@ -677,12 +677,21 @@ body.pm-active #particleCanvas{display:none!important;}
 .bias-btn.active-neut .bl{color:#64748b;}.bias-btn.active-neut .be{transform:scale(1.12);}
 
 .bias-note-input{
-  width:100%;background:rgba(248,250,252,0.9);border:1px solid rgba(0,0,0,0.1);
-  color:#1e293b;padding:10px 12px;border-radius:10px;font-size:12px;font-family:'Inter',sans-serif;
-  resize:none;outline:none;transition:border-color .2s;line-height:1.6;
+  width:100%;
+  background:linear-gradient(135deg,rgba(240,253,244,0.95),rgba(236,253,245,0.9));
+  border:1.5px solid rgba(16,185,129,0.25);
+  color:#0f172a;padding:13px 14px;border-radius:12px;
+  font-size:14px;font-weight:700;font-family:'JetBrains Mono',monospace;
+  resize:none;outline:none;transition:all .2s;line-height:1.7;
+  box-shadow:0 2px 8px rgba(16,185,129,0.08);
+  letter-spacing:.01em;
 }
-.bias-note-input::placeholder{color:#94a3b8;}
-.bias-note-input:focus{border-color:#10b981;box-shadow:0 0 0 3px rgba(16,185,129,0.1);}
+.bias-note-input::placeholder{color:rgba(16,185,129,0.35);font-weight:400;font-size:13px;}
+.bias-note-input:focus{
+  border-color:rgba(16,185,129,0.5);
+  box-shadow:0 0 0 3px rgba(16,185,129,0.12),0 2px 12px rgba(16,185,129,0.1);
+  background:rgba(240,253,244,1);
+}
 
 /* Stance box */
 #pmBiasIndicator{background:rgba(248,250,252,0.8) !important;border:1px solid rgba(0,0,0,0.07) !important;}
@@ -721,9 +730,9 @@ body.pm-active #particleCanvas{display:none!important;}
 /* ── TABLE ── */
 .wl-table{width:100%;border-collapse:collapse;}
 .wl-table thead th{
-  padding:10px 16px;text-align:left;font-size:9px;font-weight:900;text-transform:uppercase;
-  letter-spacing:.14em;color:#64748b;font-family:'JetBrains Mono',monospace;
-  border-bottom:1px solid rgba(0,0,0,0.07);background:rgba(248,250,252,0.7);white-space:nowrap;
+  padding:12px 16px;text-align:left;font-size:11px;font-weight:900;text-transform:uppercase;
+  letter-spacing:.1em;color:#1e293b;font-family:'JetBrains Mono',monospace;
+  border-bottom:2px solid rgba(0,0,0,0.1);background:rgba(241,245,249,0.85);white-space:nowrap;
 }
 .wl-table tbody tr{
   border-bottom:1px solid rgba(0,0,0,0.05);
@@ -900,9 +909,10 @@ body.pm-active #particleCanvas{display:none!important;}
     </div>
     <div style="font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:#0f766e;font-family:'JetBrains Mono',monospace;margin-bottom:7px">Bias Notes</div>
     <textarea id="biasReason" class="bias-note-input" rows="5" placeholder="Futures gap, macro, key catalysts…"></textarea>
-    <div style="margin-top:14px;padding:11px 14px;border-radius:10px;background:rgba(248,250,252,0.9);border:1px solid rgba(0,0,0,0.08);text-align:center">
-      <div style="font-size:8px;color:#94a3b8;text-transform:uppercase;letter-spacing:.12em;font-family:'JetBrains Mono',monospace;margin-bottom:4px">Today's Stance</div>
+    <div style="margin-top:14px;padding:12px 14px;border-radius:10px;background:rgba(248,250,252,0.9);border:1px solid rgba(0,0,0,0.07);text-align:center;position:relative">
+      <div style="font-size:8px;color:#94a3b8;text-transform:uppercase;letter-spacing:.12em;font-family:'JetBrains Mono',monospace;margin-bottom:5px">Today's Stance</div>
       <div id="pmBiasDisplay" style="font-size:18px;font-weight:900;color:#94a3b8;font-family:'JetBrains Mono',monospace;letter-spacing:.04em">— NEUTRAL —</div>
+      <div style="font-size:9px;color:#cbd5e1;font-family:'JetBrains Mono',monospace;margin-top:6px;letter-spacing:.05em">tap icon again to change</div>
     </div>
   </div>
 
@@ -1622,8 +1632,9 @@ document.addEventListener('keydown',e=>{
 // ═══ PRE-MARKET FUNCTIONS ═══
 
 function pmSetBias(v) {
+  // If clicking the already-selected option → deselect (show all 3 again)
+  if(pmBias === v) { pmResetBias(); return; }
   pmBias = v;
-  // Show only the selected bias button, hide others
   const bMap = {bull:'Bull', neutral:'Neut', bear:'Bear'};
   Object.entries(bMap).forEach(([key, id]) => {
     const el = document.getElementById('bias'+id);
