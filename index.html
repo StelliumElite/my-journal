@@ -658,23 +658,23 @@ body.pm-active #particleCanvas{display:none!important;}
 /* section label */
 .pm-bias-panel [style*="color:rgba(0,255,204"]{color:rgba(15,118,110,0.8) !important;}
 
-.bias-selector{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px;}
-.bias-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;
-  padding:14px 8px;border-radius:12px;cursor:pointer;
-  border:1px solid rgba(0,0,0,0.08);background:rgba(248,250,252,0.9);
-  transition:all .2s;user-select:none;box-shadow:0 1px 4px rgba(0,0,0,0.05);}
-.bias-btn .be{font-size:22px;transition:transform .2s;}
-.bias-btn .bl{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;
+.bias-selector{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:18px;}
+.bias-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
+  padding:26px 12px;border-radius:14px;cursor:pointer;
+  border:1.5px solid rgba(0,0,0,0.08);background:rgba(248,250,252,0.9);
+  transition:all .2s;user-select:none;box-shadow:0 1px 4px rgba(0,0,0,0.05);text-align:center;}
+.bias-btn .be{font-size:40px;transition:transform .2s;line-height:1;}
+.bias-btn .bl{font-size:13px;font-weight:900;text-transform:uppercase;letter-spacing:.1em;
   font-family:'JetBrains Mono',monospace;color:#94a3b8;transition:color .2s;}
-.bias-btn:hover{background:#fff;transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,0.08);}
-.bias-btn.active-bull{background:rgba(220,252,231,0.9);border-color:rgba(34,197,94,0.5);
-  box-shadow:0 0 16px rgba(34,197,94,0.15);}
-.bias-btn.active-bull .bl{color:#16a34a;}.bias-btn.active-bull .be{transform:scale(1.15);}
-.bias-btn.active-bear{background:rgba(254,226,226,0.9);border-color:rgba(239,68,68,0.5);
-  box-shadow:0 0 16px rgba(239,68,68,0.12);}
-.bias-btn.active-bear .bl{color:#dc2626;}.bias-btn.active-bear .be{transform:scale(1.15);}
-.bias-btn.active-neut{background:rgba(241,245,249,0.9);border-color:rgba(148,163,184,0.5);}
-.bias-btn.active-neut .bl{color:#64748b;}.bias-btn.active-neut .be{transform:scale(1.15);}
+.bias-btn:hover{background:#fff;transform:translateY(-2px);box-shadow:0 6px 18px rgba(0,0,0,0.1);}
+.bias-btn.active-bull{background:rgba(220,252,231,0.95);border-color:rgba(34,197,94,0.55);
+  box-shadow:0 4px 20px rgba(34,197,94,0.18);}
+.bias-btn.active-bull .bl{color:#16a34a;}.bias-btn.active-bull .be{transform:scale(1.12);}
+.bias-btn.active-bear{background:rgba(254,226,226,0.95);border-color:rgba(239,68,68,0.55);
+  box-shadow:0 4px 20px rgba(239,68,68,0.15);}
+.bias-btn.active-bear .bl{color:#dc2626;}.bias-btn.active-bear .be{transform:scale(1.12);}
+.bias-btn.active-neut{background:rgba(241,245,249,0.95);border-color:rgba(148,163,184,0.55);}
+.bias-btn.active-neut .bl{color:#64748b;}.bias-btn.active-neut .be{transform:scale(1.12);}
 
 .bias-note-input{
   width:100%;background:rgba(248,250,252,0.9);border:1px solid rgba(0,0,0,0.1);
@@ -1841,17 +1841,8 @@ function pmLoadPlan(id) {
   pmSetBias(plan.bias || 'neutral');
   document.getElementById('pmWatchlistBody').innerHTML = '';
   (plan.watchlist || []).forEach(w => pmAddWatchRow(w));
-  // After loading, lock form if plan is locked
-  const locked = pmPlanIsLocked(plan);
-  document.querySelectorAll('#pmWatchlistBody input, #pmWatchlistBody textarea, #pmWatchlistBody .dir-btn-new').forEach(el => {
-    if(el.classList.contains('wl-eod-input')) return; // EOD always editable
-    el.disabled = locked;
-    if(locked) el.style.opacity = '0.7';
-  });
-  document.querySelectorAll('#pmWatchlistBody .focus-star-btn, #pmWatchlistBody .wl-del-btn').forEach(el => {
-    if(el.classList.contains('wl-del-btn') && locked) { el.disabled = true; el.style.opacity='0.3'; el.title='Locked'; }
-  });
-  document.getElementById('biasReason').disabled = locked;
+  // Locked plans: everything still editable EXCEPT delete (handled by pmDeletePlan)
+  // EOD review always editable — no input-level locks applied on load
   pmUpdateWlCount();
   window.scrollTo({top:0,behavior:'smooth'});
   showToast('info','Plan Loaded', pmFmtDate(plan.date));
