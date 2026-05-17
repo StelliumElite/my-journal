@@ -1083,9 +1083,6 @@ body.pm-active #particleCanvas{display:none!important;}
             </td>
             <td>
               <div class="mkt-levels-wrap">
-                <div class="mkt-level prev-close"><span class="ml-label">Prev Close</span><input class="mkt-input" id="spy-prev" placeholder="—"></div>
-                <div class="mkt-level support">   <span class="ml-label">Support</span><input class="mkt-input" id="spy-supp" placeholder="—"></div>
-                <div class="mkt-level resist">    <span class="ml-label">Resistance</span><input class="mkt-input" id="spy-res" placeholder="—"></div>
                 <div class="mkt-level key-lvl">  <span class="ml-label">Key Level</span><input class="mkt-input" id="spy-key" placeholder="—"></div>
               </div>
             </td>
@@ -1099,9 +1096,6 @@ body.pm-active #particleCanvas{display:none!important;}
             </td>
             <td>
               <div class="mkt-levels-wrap">
-                <div class="mkt-level prev-close"><span class="ml-label">Prev Close</span><input class="mkt-input" id="vix-prev" placeholder="—"></div>
-                <div class="mkt-level support">   <span class="ml-label">Low Range</span><input class="mkt-input" id="vix-supp" placeholder="—"></div>
-                <div class="mkt-level resist">    <span class="ml-label">High Range</span><input class="mkt-input" id="vix-res" placeholder="—"></div>
                 <div class="mkt-level key-lvl">  <span class="ml-label">Alert Level</span><input class="mkt-input" id="vix-key" placeholder="—"></div>
               </div>
             </td>
@@ -1117,7 +1111,7 @@ body.pm-active #particleCanvas{display:none!important;}
         <tr>
           <th style="width:30px"></th><!-- star -->
           <th style="width:110px">Ticker</th>
-          <th style="width:110px">Direction</th>
+          <th style="width:110px">Bias</th>
           <th style="min-width:180px">Levels</th>
           <th style="min-width:120px">Setup</th>
           <th style="min-width:110px">Catalyst</th>
@@ -1978,8 +1972,8 @@ function pmSavePlan() {
   if(!planDate) { showToast('error','No Date','Select a plan date first.'); return; }
   const gv = id => { const el = document.getElementById(id); return el ? el.value.trim() : ''; };
   const indicators = {
-    spy: { prev:gv('spy-prev'), supp:gv('spy-supp'), res:gv('spy-res'), key:gv('spy-key'), notes:gv('spy-notes') },
-    vix: { prev:gv('vix-prev'), supp:gv('vix-supp'), res:gv('vix-res'), key:gv('vix-key'), notes:gv('vix-notes') }
+    spy: { key:gv('spy-key'), notes:gv('spy-notes') },
+    vix: { key:gv('vix-key'), notes:gv('vix-notes') }
   };
   const plan = { id:Date.now().toString(36), date:planDate, savedAt:new Date().toISOString(), bias:pmBias, biasReason:document.getElementById('biasReason').value, indicators, watchlist:pmGetWatchlist() };
   const existing = pmPlans.findIndex(p => p.date === planDate);
@@ -1994,7 +1988,7 @@ function pmClearForm() {
   document.getElementById('biasReason').disabled = false;
   document.getElementById('pmWatchlistBody').innerHTML = '';
   // Clear market indicators
-  ['spy-prev','spy-supp','spy-res','spy-key','spy-notes','vix-prev','vix-supp','vix-res','vix-key','vix-notes'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+  ['spy-key','spy-notes','vix-key','vix-notes'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
   pmResetBias();
   pmUpdateWlCount();
   showToast('info','Cleared','Form reset.');
@@ -2010,8 +2004,8 @@ function pmLoadPlan(id) {
   // Restore market indicators
   const sv = (id, val) => { const el = document.getElementById(id); if(el) el.value = val||''; };
   const ind = plan.indicators || {};
-  sv('spy-prev',ind.spy?.prev); sv('spy-supp',ind.spy?.supp); sv('spy-res',ind.spy?.res); sv('spy-key',ind.spy?.key); sv('spy-notes',ind.spy?.notes);
-  sv('vix-prev',ind.vix?.prev); sv('vix-supp',ind.vix?.supp); sv('vix-res',ind.vix?.res); sv('vix-key',ind.vix?.key); sv('vix-notes',ind.vix?.notes);
+  sv('spy-key',ind.spy?.key); sv('spy-notes',ind.spy?.notes);
+  sv('vix-key',ind.vix?.key); sv('vix-notes',ind.vix?.notes);
   // Locked plans: everything still editable EXCEPT delete (handled by pmDeletePlan)
   // EOD review always editable — no input-level locks applied on load
   pmUpdateWlCount();
