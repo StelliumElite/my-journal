@@ -870,6 +870,87 @@ body.pm-active #particleCanvas{display:none!important;}
 .wl-eod-input::placeholder{color:#d1a84a;font-weight:400;}
 .wl-eod-input:focus{border-color:#f59e0b;background:rgba(255,251,235,0.9);box-shadow:0 0 0 2px rgba(245,158,11,0.1);}
 
+
+/* ── MARKET INDICATORS (SPY / VIX) ── */
+.pm-mkt-panel{
+  background:rgba(255,255,255,0.8);
+  border:1px solid rgba(0,180,140,0.18);border-radius:16px;overflow:hidden;position:relative;
+  backdrop-filter:blur(16px);
+  box-shadow:0 2px 16px rgba(0,0,0,0.06);
+  margin-bottom:14px;
+}
+.pm-mkt-panel::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,#3b82f6,#06b6d4,#10b981);
+}
+.pm-mkt-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 20px 12px;border-bottom:2px solid rgba(0,0,0,0.08);
+  background:rgba(241,245,249,0.85);
+}
+.pm-mkt-title{
+  display:flex;align-items:center;gap:10px;
+}
+.pm-mkt-title-text{
+  font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.14em;
+  color:#1e293b;font-family:'JetBrains Mono',monospace;
+}
+.pm-mkt-title-sub{
+  font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.16em;
+  color:#0f766e;margin-top:2px;font-family:'JetBrains Mono',monospace;
+}
+.pm-mkt-table{width:100%;border-collapse:collapse;}
+.pm-mkt-table thead th{
+  padding:12px 16px;text-align:left;font-size:11px;font-weight:900;text-transform:uppercase;
+  letter-spacing:.1em;color:#1e293b;font-family:'JetBrains Mono',monospace;
+  border-bottom:2px solid rgba(0,0,0,0.1);background:rgba(241,245,249,0.85);white-space:nowrap;
+}
+.pm-mkt-table tbody tr{border-bottom:1px solid rgba(0,0,0,0.05);transition:background .12s;}
+.pm-mkt-table tbody tr:hover{background:rgba(59,130,246,0.025);}
+.pm-mkt-table tbody td{padding:16px 16px;vertical-align:middle;}
+
+/* Instrument name cell */
+.mkt-sym{
+  font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:900;
+  letter-spacing:.03em;line-height:1;
+}
+.mkt-sym.spy{color:#1d4ed8;}
+.mkt-sym.vix{color:#7c3aed;}
+.mkt-sym-sub{
+  font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;
+  margin-top:3px;font-family:'JetBrains Mono',monospace;opacity:.5;
+}
+.mkt-sym.spy + .mkt-sym-sub{color:#1d4ed8;}
+.mkt-sym.vix + .mkt-sym-sub{color:#7c3aed;}
+
+/* Level chips — same style as watchlist level-mini */
+.mkt-levels-wrap{display:flex;flex-direction:row;gap:7px;flex-wrap:nowrap;}
+.mkt-level{
+  display:flex;flex-direction:column;align-items:flex-start;
+  padding:6px 10px;border-radius:8px;border:1px solid transparent;
+  min-width:82px;flex:1;
+}
+.mkt-level.prev-close{background:rgba(241,245,249,0.9);border-color:rgba(100,116,139,0.25);color:#334155;}
+.mkt-level.support   {background:rgba(220,252,231,0.65);border-color:rgba(34,197,94,0.22);color:#15803d;}
+.mkt-level.resist    {background:rgba(254,226,226,0.65);border-color:rgba(239,68,68,0.22);color:#b91c1c;}
+.mkt-level.key-lvl   {background:rgba(219,234,254,0.7);border-color:rgba(59,130,246,0.25);color:#1d4ed8;}
+.mkt-level .ml-label{
+  font-size:7px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
+  opacity:.55;margin-bottom:4px;white-space:nowrap;font-family:'JetBrains Mono',monospace;
+}
+.mkt-input{
+  background:transparent;border:none;outline:none;color:inherit;
+  font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:800;
+  width:100%;padding:0;
+}
+.mkt-input::placeholder{opacity:.25;font-weight:400;font-size:11px;}
+.mkt-notes-input{
+  width:100%;background:transparent;border:none;
+  color:#1e293b;font-family:'JetBrains Mono',monospace;
+  font-size:12px;font-weight:600;outline:none;padding:0;line-height:1.5;
+}
+.mkt-notes-input::placeholder{color:#b0bec5;font-weight:400;}
+.mkt-notes-input:focus{color:#0f172a;}
 @media(max-width:960px){
   .pm-main-grid{grid-template-columns:1fr !important}
   .wl-levels-wrap{flex-wrap:wrap;}
@@ -961,6 +1042,73 @@ body.pm-active #particleCanvas{display:none!important;}
         <div class="pm-live-dot">Live</div>
         <div class="pm-wl-count-badge" id="pmWlCount">0 Tickers</div>
       </div>
+    </div>
+
+    <!-- MARKET INDICATORS: SPY + VIX -->
+    <div class="pm-mkt-panel">
+      <div class="pm-mkt-header">
+        <div class="pm-mkt-title">
+          <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
+            <rect width="26" height="26" rx="8" fill="rgba(59,130,246,0.1)"/>
+            <rect x="4" y="14" width="3" height="8" rx="1" fill="#ef4444" opacity=".85"/>
+            <line x1="5.5" y1="11" x2="5.5" y2="14" stroke="#ef4444" stroke-width="1.2" opacity=".85"/>
+            <rect x="9" y="9" width="3" height="9" rx="1" fill="#22c55e" opacity=".9"/>
+            <line x1="10.5" y1="6.5" x2="10.5" y2="9" stroke="#22c55e" stroke-width="1.2" opacity=".9"/>
+            <rect x="14" y="11" width="3" height="7" rx="1" fill="#22c55e" opacity=".9"/>
+            <line x1="15.5" y1="8" x2="15.5" y2="11" stroke="#22c55e" stroke-width="1.2" opacity=".9"/>
+            <rect x="19" y="7" width="3" height="11" rx="1" fill="#3b82f6" opacity=".85"/>
+            <line x1="20.5" y1="5" x2="20.5" y2="7" stroke="#3b82f6" stroke-width="1.2" opacity=".85"/>
+            <polyline points="5.5,18 10.5,13 15.5,14 20.5,10" stroke="#10b981" stroke-width="1.3" fill="none" stroke-linecap="round" opacity=".7"/>
+          </svg>
+          <div>
+            <div class="pm-mkt-title-text">Market Indicators</div>
+            <div class="pm-mkt-title-sub">SPY · VIX · Key Levels</div>
+          </div>
+        </div>
+      </div>
+      <table class="pm-mkt-table">
+        <thead>
+          <tr>
+            <th style="width:110px">Instrument</th>
+            <th style="min-width:340px">Key Levels</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- SPY ROW -->
+          <tr id="mktRowSPY">
+            <td>
+              <div class="mkt-sym spy">SPY</div>
+              <div class="mkt-sym-sub" style="color:#1d4ed8;opacity:.5">S&P 500 ETF</div>
+            </td>
+            <td>
+              <div class="mkt-levels-wrap">
+                <div class="mkt-level prev-close"><span class="ml-label">Prev Close</span><input class="mkt-input" id="spy-prev" placeholder="—"></div>
+                <div class="mkt-level support">   <span class="ml-label">Support</span><input class="mkt-input" id="spy-supp" placeholder="—"></div>
+                <div class="mkt-level resist">    <span class="ml-label">Resistance</span><input class="mkt-input" id="spy-res" placeholder="—"></div>
+                <div class="mkt-level key-lvl">  <span class="ml-label">Key Level</span><input class="mkt-input" id="spy-key" placeholder="—"></div>
+              </div>
+            </td>
+            <td><input class="mkt-notes-input" id="spy-notes" placeholder="Trend, gap, catalyst…"></td>
+          </tr>
+          <!-- VIX ROW -->
+          <tr id="mktRowVIX">
+            <td>
+              <div class="mkt-sym vix">VIX</div>
+              <div class="mkt-sym-sub" style="color:#7c3aed;opacity:.5">Volatility Index</div>
+            </td>
+            <td>
+              <div class="mkt-levels-wrap">
+                <div class="mkt-level prev-close"><span class="ml-label">Prev Close</span><input class="mkt-input" id="vix-prev" placeholder="—"></div>
+                <div class="mkt-level support">   <span class="ml-label">Low Range</span><input class="mkt-input" id="vix-supp" placeholder="—"></div>
+                <div class="mkt-level resist">    <span class="ml-label">High Range</span><input class="mkt-input" id="vix-res" placeholder="—"></div>
+                <div class="mkt-level key-lvl">  <span class="ml-label">Alert Level</span><input class="mkt-input" id="vix-key" placeholder="—"></div>
+              </div>
+            </td>
+            <td><input class="mkt-notes-input" id="vix-notes" placeholder="Fear gauge, trend…"></td>
+          </tr>
+        </tbody>
+      </table>
     </div>
 
     <!-- TABLE -->
@@ -1828,7 +1976,12 @@ function pmGetWatchlist() {
 function pmSavePlan() {
   const planDate = document.getElementById('planDate').value;
   if(!planDate) { showToast('error','No Date','Select a plan date first.'); return; }
-  const plan = { id:Date.now().toString(36), date:planDate, savedAt:new Date().toISOString(), bias:pmBias, biasReason:document.getElementById('biasReason').value, watchlist:pmGetWatchlist() };
+  const gv = id => { const el = document.getElementById(id); return el ? el.value.trim() : ''; };
+  const indicators = {
+    spy: { prev:gv('spy-prev'), supp:gv('spy-supp'), res:gv('spy-res'), key:gv('spy-key'), notes:gv('spy-notes') },
+    vix: { prev:gv('vix-prev'), supp:gv('vix-supp'), res:gv('vix-res'), key:gv('vix-key'), notes:gv('vix-notes') }
+  };
+  const plan = { id:Date.now().toString(36), date:planDate, savedAt:new Date().toISOString(), bias:pmBias, biasReason:document.getElementById('biasReason').value, indicators, watchlist:pmGetWatchlist() };
   const existing = pmPlans.findIndex(p => p.date === planDate);
   if(existing > -1) pmPlans[existing] = plan; else pmPlans.unshift(plan);
   localStorage.setItem('stellium_preplans', JSON.stringify(pmPlans));
@@ -1840,6 +1993,8 @@ function pmClearForm() {
   document.getElementById('biasReason').value = '';
   document.getElementById('biasReason').disabled = false;
   document.getElementById('pmWatchlistBody').innerHTML = '';
+  // Clear market indicators
+  ['spy-prev','spy-supp','spy-res','spy-key','spy-notes','vix-prev','vix-supp','vix-res','vix-key','vix-notes'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
   pmResetBias();
   pmUpdateWlCount();
   showToast('info','Cleared','Form reset.');
@@ -1852,6 +2007,11 @@ function pmLoadPlan(id) {
   pmSetBias(plan.bias || 'neutral');
   document.getElementById('pmWatchlistBody').innerHTML = '';
   (plan.watchlist || []).forEach(w => pmAddWatchRow(w));
+  // Restore market indicators
+  const sv = (id, val) => { const el = document.getElementById(id); if(el) el.value = val||''; };
+  const ind = plan.indicators || {};
+  sv('spy-prev',ind.spy?.prev); sv('spy-supp',ind.spy?.supp); sv('spy-res',ind.spy?.res); sv('spy-key',ind.spy?.key); sv('spy-notes',ind.spy?.notes);
+  sv('vix-prev',ind.vix?.prev); sv('vix-supp',ind.vix?.supp); sv('vix-res',ind.vix?.res); sv('vix-key',ind.vix?.key); sv('vix-notes',ind.vix?.notes);
   // Locked plans: everything still editable EXCEPT delete (handled by pmDeletePlan)
   // EOD review always editable — no input-level locks applied on load
   pmUpdateWlCount();
