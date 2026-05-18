@@ -787,8 +787,11 @@ body.pm-active #particleCanvas{display:none!important;}
 }
 .level-row-simple .lr-label{
   font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;
-  font-family:'JetBrains Mono',monospace;color:#64748b;white-space:nowrap;min-width:72px;
+  font-family:'JetBrains Mono',monospace;color:#64748b;white-space:nowrap;min-width:82px;
 }
+.level-row-simple .lr-supp{color:#15803d;}
+.level-row-simple .lr-res {color:#b91c1c;}
+.level-row-simple .lr-tgt {color:#1d4ed8;}
 .level-input{
   background:rgba(248,250,252,0.95);border:1.5px solid rgba(0,0,0,0.09);
   border-radius:7px;padding:5px 10px;outline:none;
@@ -898,7 +901,7 @@ body.pm-active #particleCanvas{display:none!important;}
       <div style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.2em;color:#0f766e;font-family:'JetBrains Mono',monospace;margin-bottom:5px">Pre-Market Plan</div>
       <div style="display:flex;align-items:center;gap:10px">
         <input type="date" id="planDate" class="pm-date-input">
-        ayLabel" style="font-size:17px;font-weight:900;color:#0f766e;font-family:'JetBrains Mono',monospace;letter-spacing:-.01em"></div>
+        <div id="pmDayLabel" style="font-size:17px;font-weight:900;color:#0f766e;font-family:'JetBrains Mono',monospace;letter-spacing:-.01em"></div>
       </div>
     </div>
   </div>
@@ -1682,25 +1685,12 @@ function pmResetBias() {
 
 // ── UPDATED: flat label+input rows, neutral direction ──
 function pmBuildLevelCells(dir) {
-  if(dir === 'long') {
-    return `<div class="wl-levels-wrap">
-      <div class="level-row-simple"><span class="lr-label">🟢 Support</span><input class="level-input" placeholder="210.00" data-ltype="support"></div>
-      <div class="level-row-simple"><span class="lr-label">🎯 Target</span><input class="level-input" placeholder="225.00" data-ltype="target"></div>
-      <div class="level-row-simple"><span class="lr-label">🔴 Resist</span><input class="level-input" placeholder="230.00" data-ltype="resist"></div>
-    </div>`;
-  } else if(dir === 'short') {
-    return `<div class="wl-levels-wrap">
-      <div class="level-row-simple"><span class="lr-label">🔴 Upside</span><input class="level-input" placeholder="230.00" data-ltype="resist"></div>
-      <div class="level-row-simple"><span class="lr-label">🎯 Target</span><input class="level-input" placeholder="205.00" data-ltype="downside"></div>
-      <div class="level-row-simple"><span class="lr-label">🟢 Support</span><input class="level-input" placeholder="198.00" data-ltype="support"></div>
-    </div>`;
-  } else {
-    return `<div class="wl-levels-wrap">
-      <div class="level-row-simple"><span class="lr-label">📍 Level 1</span><input class="level-input" placeholder="—" data-ltype="l1"></div>
-      <div class="level-row-simple"><span class="lr-label">📍 Level 2</span><input class="level-input" placeholder="—" data-ltype="l2"></div>
-      <div class="level-row-simple"><span class="lr-label">📍 Level 3</span><input class="level-input" placeholder="—" data-ltype="l3"></div>
-    </div>`;
-  }
+  // All directions share: Support, Resistance, Potential Target
+  return `<div class="wl-levels-wrap">
+    <div class="level-row-simple"><span class="lr-label lr-supp">Support</span><input class="level-input" placeholder="—" data-ltype="support"></div>
+    <div class="level-row-simple"><span class="lr-label lr-res">Resistance</span><input class="level-input" placeholder="—" data-ltype="resist"></div>
+    <div class="level-row-simple"><span class="lr-label lr-tgt">Pot. Target</span><input class="level-input" placeholder="—" data-ltype="target"></div>
+  </div>`;
 }
 
 function pmTickerColor(dir) {
