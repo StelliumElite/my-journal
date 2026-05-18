@@ -593,15 +593,10 @@ body{padding-bottom:32px}
 <div id="page-premarket" class="page-section" style="display:none">
 
 <style>
-/* ══════════════════════════════════════
-   PRE-MARKET — LIGHT BACKGROUND + FIXED LAYOUT
-══════════════════════════════════════ */
-
-/* ── LIGHT BACKGROUND scoped to pre-market only ── */
 #page-premarket{
   position:relative;
   min-height:100vh;
-  margin:-24px -32px;   /* bleed out to cover the max-w container padding */
+  margin:-24px -32px;
   padding:24px 32px;
   background:
     radial-gradient(ellipse 60% 40% at 15% 10%, rgba(209,250,229,0.55) 0%, transparent 55%),
@@ -609,8 +604,6 @@ body{padding-bottom:32px}
     radial-gradient(ellipse 70% 60% at 50% 50%, rgba(240,253,244,0.3) 0%, transparent 70%),
     linear-gradient(160deg, #f0fdf8 0%, #f8fafc 35%, #eff6ff 70%, #f0fdf4 100%);
 }
-
-/* Override body background when pre-market is active — done via JS class swap */
 body.pm-active{
   background:#f4fbf8 !important;
   background-image:none !important;
@@ -637,11 +630,8 @@ body.pm-active #particleCanvas{display:none!important;}
   outline:none;transition:all .2s;width:auto;
 }
 .pm-date-input:focus{border-color:#10b981;box-shadow:0 0 0 3px rgba(16,185,129,0.12);}
-
-/* day label */
 #pmDayLabel{color:#0f766e !important;}
 
-/* BIAS PANEL */
 .pm-bias-panel{
   background:rgba(255,255,255,0.8);
   border:1px solid rgba(0,180,140,0.18);border-radius:16px;
@@ -654,8 +644,6 @@ body.pm-active #particleCanvas{display:none!important;}
 .pm-bias-panel.bull::before{background:linear-gradient(90deg,#16a34a,#22c55e,#4ade80,#22c55e,#16a34a)}
 .pm-bias-panel.bear::before{background:linear-gradient(90deg,#b91c1c,#ef4444,#f87171,#ef4444,#b91c1c)}
 .pm-bias-panel.neutral::before{background:linear-gradient(90deg,#94a3b8,#cbd5e1,#94a3b8)}
-
-/* section label */
 .pm-bias-panel [style*="color:rgba(0,255,204"]{color:rgba(15,118,110,0.8) !important;}
 
 .bias-selector{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:18px;}
@@ -692,12 +680,9 @@ body.pm-active #particleCanvas{display:none!important;}
   box-shadow:0 0 0 3px rgba(16,185,129,0.12),0 2px 12px rgba(16,185,129,0.1);
   background:rgba(240,253,244,1);
 }
-
-/* Stance box */
 #pmBiasIndicator{background:rgba(248,250,252,0.8) !important;border:1px solid rgba(0,0,0,0.07) !important;}
 #pmBiasIndicator div:first-child{color:#94a3b8 !important;}
 
-/* WATCHLIST PANEL */
 .pm-wl-panel{
   background:rgba(255,255,255,0.8);
   border:1px solid rgba(0,180,140,0.18);border-radius:16px;overflow:hidden;position:relative;
@@ -707,7 +692,6 @@ body.pm-active #particleCanvas{display:none!important;}
 .pm-wl-panel::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;
   background:linear-gradient(90deg,#10b981,#06b6d4,#6366f1,#8b5cf6);}
 
-/* WATCHLIST LOGO HEADER */
 .pm-wl-logo-bar{
   display:flex;align-items:center;justify-content:space-between;
   padding:16px 20px 14px;border-bottom:1px solid rgba(0,0,0,0.06);
@@ -727,7 +711,6 @@ body.pm-active #particleCanvas{display:none!important;}
 .pm-live-dot{display:flex;align-items:center;gap:5px;font-size:9px;color:#94a3b8;font-family:'JetBrains Mono',monospace;}
 .pm-live-dot::before{content:'';width:5px;height:5px;border-radius:50%;background:#22c55e;box-shadow:0 0 6px rgba(34,197,94,0.5);animation:pulse 2s ease infinite;}
 
-/* ── TABLE ── */
 .wl-table{width:100%;border-collapse:collapse;}
 .wl-table thead th{
   padding:12px 16px;text-align:left;font-size:11px;font-weight:900;text-transform:uppercase;
@@ -744,7 +727,6 @@ body.pm-active #particleCanvas{display:none!important;}
   vertical-align:middle;
 }
 
-/* ── FOCUS ROW: amber glow — visible but not overpowering ── */
 .wl-row-focus{
   background:linear-gradient(90deg,
     rgba(251,191,36,0.13) 0%,
@@ -757,7 +739,6 @@ body.pm-active #particleCanvas{display:none!important;}
 .wl-row-focus td:first-child{
   padding-left:12px;
 }
-/* Focus row text stays same as all other rows — no darkness override */
 
 .focus-star-btn{
   background:transparent;border:none;cursor:pointer;font-size:18px;
@@ -767,7 +748,6 @@ body.pm-active #particleCanvas{display:none!important;}
 .focus-star-btn.starred{filter:grayscale(0);opacity:1;animation:starPop .3s ease;}
 @keyframes starPop{0%{transform:scale(1)}50%{transform:scale(1.4)}100%{transform:scale(1)}}
 
-/* TICKER — dark, bold, large, crystal clear */
 .wl-ticker-wrap{display:flex;flex-direction:column;gap:4px;}
 .wl-ticker-input{
   background:transparent;border:none;
@@ -784,10 +764,9 @@ body.pm-active #particleCanvas{display:none!important;}
 }
 .wl-row-focus .wl-focus-badge{display:block;}
 
-/* DIRECTION */
-.dir-toggle-new{display:flex;gap:4px;}
+.dir-toggle-new{display:flex;gap:4px;flex-wrap:wrap;}
 .dir-btn-new{
-  padding:7px 18px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;
+  padding:6px 12px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;
   border-radius:7px;cursor:pointer;font-family:'JetBrains Mono',monospace;
   border:1px solid rgba(0,0,0,0.1);background:rgba(248,250,252,0.9);
   color:#94a3b8;transition:all .16s;
@@ -795,43 +774,39 @@ body.pm-active #particleCanvas{display:none!important;}
 .dir-btn-new:hover{color:#475569;border-color:rgba(0,0,0,0.18);background:#fff;}
 .dir-btn-new.long-on{background:rgba(220,252,231,0.9);border-color:rgba(34,197,94,0.45);color:#15803d;
   font-weight:900;box-shadow:0 2px 6px rgba(34,197,94,0.12);}
+.dir-btn-new.neutral-on{background:rgba(241,245,249,0.95);border-color:rgba(100,116,139,0.4);color:#334155;
+  font-weight:900;box-shadow:0 2px 6px rgba(100,116,139,0.1);}
 .dir-btn-new.short-on{background:rgba(254,226,226,0.9);border-color:rgba(239,68,68,0.45);color:#b91c1c;
   font-weight:900;box-shadow:0 2px 6px rgba(239,68,68,0.1);}
 
-/* ── LEVELS: side-by-side columns ── */
 .wl-levels-wrap{
-  display:flex;flex-direction:row;gap:7px;flex-wrap:nowrap;
+  display:flex;flex-direction:column;gap:6px;min-width:200px;
 }
-.level-mini{
-  display:flex;flex-direction:column;align-items:flex-start;
-  padding:7px 11px;border-radius:8px;
-  border:1px solid transparent;
-  min-width:88px;flex:1;
+.level-row-simple{
+  display:flex;align-items:center;gap:8px;
 }
-.level-mini.support{background:rgba(220,252,231,0.65);border-color:rgba(34,197,94,0.22);color:#15803d;}
-.level-mini.target{background:rgba(209,250,229,0.75);border-color:rgba(16,185,129,0.28);color:#0f766e;}
-.level-mini.resist{background:rgba(254,226,226,0.65);border-color:rgba(239,68,68,0.22);color:#b91c1c;}
-.level-mini.downside{background:rgba(254,226,226,0.65);border-color:rgba(239,68,68,0.22);color:#b91c1c;}
-.level-mini .lm-label{
-  font-size:9px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;
-  opacity:.7;margin-bottom:5px;white-space:nowrap;font-family:'JetBrains Mono',monospace;
+.level-row-simple .lr-label{
+  font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;
+  font-family:'JetBrains Mono',monospace;color:#64748b;white-space:nowrap;min-width:72px;
 }
 .level-input{
-  background:transparent;border:none;outline:none;color:inherit;
-  font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:800;
-  width:100%;padding:0;
+  background:rgba(248,250,252,0.95);border:1.5px solid rgba(0,0,0,0.09);
+  border-radius:7px;padding:5px 10px;outline:none;
+  font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;
+  color:#1e293b;width:92px;transition:border-color .18s,box-shadow .18s;
 }
-.level-input::placeholder{opacity:.3;font-weight:400;font-size:13px;}
+.level-input:focus{border-color:#10b981;box-shadow:0 0 0 2px rgba(16,185,129,0.12);}
+.level-input::placeholder{color:#cbd5e1;font-weight:400;font-size:12px;}
 
-/* TEXT INPUTS (setup / catalyst) — dark, readable */
 .wl-text-input{
-  width:100%;background:transparent;border:none;
-  color:#1e293b;
-  font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;
-  outline:none;padding:0;line-height:1.5;
+  width:100%;background:rgba(255,255,255,0.7);border:1.5px solid rgba(0,0,0,0.09);
+  color:#1e293b;border-radius:8px;padding:6px 9px;
+  font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;
+  outline:none;resize:none;line-height:1.55;min-height:46px;
+  transition:border-color .18s,box-shadow .18s;
 }
 .wl-text-input::placeholder{color:#b0bec5;font-weight:400;}
-.wl-text-input:focus{color:#0f172a;}
+.wl-text-input:focus{border-color:#10b981;box-shadow:0 0 0 2px rgba(16,185,129,0.1);color:#0f172a;background:#fff;}
 
 .wl-del-btn{background:transparent;border:none;color:#d1d5db;cursor:pointer;
   font-size:14px;padding:4px 6px;border-radius:5px;transition:all .15s;line-height:1;display:block;}
@@ -845,7 +820,6 @@ body.pm-active #particleCanvas{display:none!important;}
 }
 .pm-add-row-btn:hover{color:#059669;background:rgba(16,185,129,0.035);}
 
-/* SAVED PLANS */
 .pm-saved-strip{
   border:1px solid rgba(0,0,0,0.07);border-radius:11px;padding:11px 16px;margin-bottom:7px;
   display:flex;align-items:center;gap:14px;flex-wrap:wrap;
@@ -853,13 +827,9 @@ body.pm-active #particleCanvas{display:none!important;}
   box-shadow:0 1px 4px rgba(0,0,0,0.04);
 }
 @keyframes pmSlideIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
-
-/* Saved plans container */
 #savedPlansList .pm-saved-strip [style*="color:#9ca3af"]{color:#64748b !important;}
 #savedPlansList .pm-saved-strip [style*="color:#6b7280"]{color:#64748b !important;}
 
-
-/* EOD REVIEW textarea */
 .wl-eod-input{
   width:100%;background:rgba(255,251,235,0.7);border:1px solid rgba(245,158,11,0.2);
   color:#1e293b;padding:6px 8px;border-radius:8px;
@@ -870,8 +840,6 @@ body.pm-active #particleCanvas{display:none!important;}
 .wl-eod-input::placeholder{color:#d1a84a;font-weight:400;}
 .wl-eod-input:focus{border-color:#f59e0b;background:rgba(255,251,235,0.9);box-shadow:0 0 0 2px rgba(245,158,11,0.1);}
 
-
-/* ── MARKET INDICATORS (SPY / VIX) ── */
 .pm-mkt-panel{
   background:rgba(255,255,255,0.8);
   border:1px solid rgba(0,180,140,0.18);border-radius:16px;overflow:hidden;position:relative;
@@ -888,67 +856,32 @@ body.pm-active #particleCanvas{display:none!important;}
   padding:14px 20px 12px;border-bottom:2px solid rgba(0,0,0,0.08);
   background:rgba(241,245,249,0.85);
 }
-.pm-mkt-title{
-  display:flex;align-items:center;gap:10px;
-}
-.pm-mkt-title-text{
-  font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.14em;
-  color:#1e293b;font-family:'JetBrains Mono',monospace;
-}
-.pm-mkt-title-sub{
-  font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.16em;
-  color:#0f766e;margin-top:2px;font-family:'JetBrains Mono',monospace;
-}
+.pm-mkt-title{display:flex;align-items:center;gap:10px;}
+.pm-mkt-title-text{font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.14em;color:#1e293b;font-family:'JetBrains Mono',monospace;}
+.pm-mkt-title-sub{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.16em;color:#0f766e;margin-top:2px;font-family:'JetBrains Mono',monospace;}
 .pm-mkt-table{width:100%;border-collapse:collapse;}
-.pm-mkt-table thead th{
-  padding:12px 16px;text-align:left;font-size:11px;font-weight:900;text-transform:uppercase;
-  letter-spacing:.1em;color:#1e293b;font-family:'JetBrains Mono',monospace;
-  border-bottom:2px solid rgba(0,0,0,0.1);background:rgba(241,245,249,0.85);white-space:nowrap;
-}
+.pm-mkt-table thead th{padding:12px 16px;text-align:left;font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.1em;color:#1e293b;font-family:'JetBrains Mono',monospace;border-bottom:2px solid rgba(0,0,0,0.1);background:rgba(241,245,249,0.85);white-space:nowrap;}
 .pm-mkt-table tbody tr{border-bottom:1px solid rgba(0,0,0,0.05);transition:background .12s;}
 .pm-mkt-table tbody tr:hover{background:rgba(59,130,246,0.025);}
 .pm-mkt-table tbody td{padding:16px 16px;vertical-align:middle;}
 
-/* Instrument name cell */
-.mkt-sym{
-  font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:900;
-  letter-spacing:.03em;line-height:1;
-}
+.mkt-sym{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:900;letter-spacing:.03em;line-height:1;}
 .mkt-sym.spy{color:#1d4ed8;}
 .mkt-sym.vix{color:#7c3aed;}
-.mkt-sym-sub{
-  font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;
-  margin-top:3px;font-family:'JetBrains Mono',monospace;opacity:.5;
-}
+.mkt-sym-sub{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-top:3px;font-family:'JetBrains Mono',monospace;opacity:.5;}
 .mkt-sym.spy + .mkt-sym-sub{color:#1d4ed8;}
 .mkt-sym.vix + .mkt-sym-sub{color:#7c3aed;}
 
-/* Level chips — same style as watchlist level-mini */
 .mkt-levels-wrap{display:flex;flex-direction:row;gap:7px;flex-wrap:nowrap;}
-.mkt-level{
-  display:flex;flex-direction:column;align-items:flex-start;
-  padding:6px 10px;border-radius:8px;border:1px solid transparent;
-  min-width:82px;flex:1;
-}
+.mkt-level{display:flex;flex-direction:column;align-items:flex-start;padding:6px 10px;border-radius:8px;border:1px solid transparent;min-width:82px;flex:1;}
 .mkt-level.prev-close{background:rgba(241,245,249,0.9);border-color:rgba(100,116,139,0.25);color:#334155;}
 .mkt-level.support   {background:rgba(220,252,231,0.65);border-color:rgba(34,197,94,0.22);color:#15803d;}
 .mkt-level.resist    {background:rgba(254,226,226,0.65);border-color:rgba(239,68,68,0.22);color:#b91c1c;}
 .mkt-level.key-lvl   {background:rgba(219,234,254,0.7);border-color:rgba(59,130,246,0.25);color:#1d4ed8;}
-.mkt-level .ml-label{
-  font-size:9px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;
-  opacity:.7;margin-bottom:5px;white-space:nowrap;font-family:'JetBrains Mono',monospace;
-}
-.mkt-input{
-  background:transparent;border:none;outline:none;color:inherit;
-  font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:800;
-  width:100%;padding:0;
-}
+.mkt-level .ml-label{font-size:9px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;opacity:.7;margin-bottom:5px;white-space:nowrap;font-family:'JetBrains Mono',monospace;}
+.mkt-input{background:transparent;border:none;outline:none;color:inherit;font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:800;width:100%;padding:0;}
 .mkt-input::placeholder{opacity:.3;font-weight:400;font-size:13px;}
-.mkt-notes-input{
-  width:100%;background:transparent;border:none;
-  color:#1e293b;font-family:'JetBrains Mono',monospace;
-  font-size:12px;font-weight:600;outline:none;padding:0;line-height:1.5;
-}
+.mkt-notes-input{width:100%;background:transparent;border:none;color:#1e293b;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;outline:none;padding:0;line-height:1.5;}
 .mkt-notes-input::placeholder{color:#b0bec5;font-weight:400;}
 .mkt-notes-input:focus{color:#0f172a;}
 @media(max-width:960px){
@@ -965,7 +898,7 @@ body.pm-active #particleCanvas{display:none!important;}
       <div style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.2em;color:#0f766e;font-family:'JetBrains Mono',monospace;margin-bottom:5px">Pre-Market Plan</div>
       <div style="display:flex;align-items:center;gap:10px">
         <input type="date" id="planDate" class="pm-date-input">
-        <div id="pmDayLabel" style="font-size:17px;font-weight:900;color:#0f766e;font-family:'JetBrains Mono',monospace;letter-spacing:-.01em"></div>
+        ayLabel" style="font-size:17px;font-weight:900;color:#0f766e;font-family:'JetBrains Mono',monospace;letter-spacing:-.01em"></div>
       </div>
     </div>
   </div>
@@ -999,20 +932,11 @@ body.pm-active #particleCanvas{display:none!important;}
 
   <!-- RIGHT: WATCHLIST -->
   <div class="pm-wl-panel">
-
-    <!-- LOGO HEADER -->
     <div class="pm-wl-logo-bar">
       <div class="pm-wl-logo">
-        <!-- Custom SVG Stock Market Logo -->
         <svg class="wl-svg-logo" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
           <rect width="36" height="36" rx="10" fill="url(#wlgrad)"/>
-          <defs>
-            <linearGradient id="wlgrad" x1="0" y1="0" x2="36" y2="36">
-              <stop offset="0%" stop-color="#00FFCC" stop-opacity="0.18"/>
-              <stop offset="100%" stop-color="#00D9FF" stop-opacity="0.08"/>
-            </linearGradient>
-          </defs>
-          <!-- Candlestick chart bars -->
+          <defs><linearGradient id="wlgrad" x1="0" y1="0" x2="36" y2="36"><stop offset="0%" stop-color="#00FFCC" stop-opacity="0.18"/><stop offset="100%" stop-color="#00D9FF" stop-opacity="0.08"/></linearGradient></defs>
           <rect x="6" y="18" width="4" height="10" rx="1" fill="#ef4444" opacity=".85"/>
           <line x1="8" y1="14" x2="8" y2="18" stroke="#ef4444" stroke-width="1.5" opacity=".85"/>
           <line x1="8" y1="28" x2="8" y2="30" stroke="#ef4444" stroke-width="1.5" opacity=".85"/>
@@ -1025,18 +949,10 @@ body.pm-active #particleCanvas{display:none!important;}
           <rect x="27" y="10" width="4" height="14" rx="1" fill="#00FFCC" opacity=".85"/>
           <line x1="29" y1="7" x2="29" y2="10" stroke="#00FFCC" stroke-width="1.5" opacity=".85"/>
           <line x1="29" y1="24" x2="29" y2="28" stroke="#00FFCC" stroke-width="1.5" opacity=".85"/>
-          <!-- Trend line -->
           <polyline points="8,22 15,16 22,19 29,13" stroke="url(#trendg)" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity=".6"/>
-          <defs>
-            <linearGradient id="trendg" x1="0" y1="0" x2="36" y2="0">
-              <stop offset="0%" stop-color="#ef4444"/><stop offset="100%" stop-color="#00FFCC"/>
-            </linearGradient>
-          </defs>
+          <defs><linearGradient id="trendg" x1="0" y1="0" x2="36" y2="0"><stop offset="0%" stop-color="#ef4444"/><stop offset="100%" stop-color="#00FFCC"/></linearGradient></defs>
         </svg>
-        <div class="pm-wl-brand">
-          <div class="pm-wl-brand-name">Watchlist</div>
-          <div class="pm-wl-brand-sub">Pre-Market Scan</div>
-        </div>
+        <div class="pm-wl-brand"><div class="pm-wl-brand-name">Watchlist</div><div class="pm-wl-brand-sub">Pre-Market Scan</div></div>
       </div>
       <div class="pm-wl-meta">
         <div class="pm-live-dot">Live</div>
@@ -1048,73 +964,37 @@ body.pm-active #particleCanvas{display:none!important;}
     <div class="pm-mkt-panel">
       <div class="pm-mkt-header">
         <div class="pm-mkt-title">
-          <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
-            <rect width="26" height="26" rx="8" fill="rgba(59,130,246,0.1)"/>
-            <rect x="4" y="14" width="3" height="8" rx="1" fill="#ef4444" opacity=".85"/>
-            <line x1="5.5" y1="11" x2="5.5" y2="14" stroke="#ef4444" stroke-width="1.2" opacity=".85"/>
-            <rect x="9" y="9" width="3" height="9" rx="1" fill="#22c55e" opacity=".9"/>
-            <line x1="10.5" y1="6.5" x2="10.5" y2="9" stroke="#22c55e" stroke-width="1.2" opacity=".9"/>
-            <rect x="14" y="11" width="3" height="7" rx="1" fill="#22c55e" opacity=".9"/>
-            <line x1="15.5" y1="8" x2="15.5" y2="11" stroke="#22c55e" stroke-width="1.2" opacity=".9"/>
-            <rect x="19" y="7" width="3" height="11" rx="1" fill="#3b82f6" opacity=".85"/>
-            <line x1="20.5" y1="5" x2="20.5" y2="7" stroke="#3b82f6" stroke-width="1.2" opacity=".85"/>
-            <polyline points="5.5,18 10.5,13 15.5,14 20.5,10" stroke="#10b981" stroke-width="1.3" fill="none" stroke-linecap="round" opacity=".7"/>
-          </svg>
-          <div>
-            <div class="pm-mkt-title-text">Market Indicators</div>
-            <div class="pm-mkt-title-sub">SPY · VIX · Key Levels</div>
-          </div>
+          <svg width="26" height="26" viewBox="0 0 26 26" fill="none"><rect width="26" height="26" rx="8" fill="rgba(59,130,246,0.1)"/><rect x="4" y="14" width="3" height="8" rx="1" fill="#ef4444" opacity=".85"/><line x1="5.5" y1="11" x2="5.5" y2="14" stroke="#ef4444" stroke-width="1.2" opacity=".85"/><rect x="9" y="9" width="3" height="9" rx="1" fill="#22c55e" opacity=".9"/><line x1="10.5" y1="6.5" x2="10.5" y2="9" stroke="#22c55e" stroke-width="1.2" opacity=".9"/><rect x="14" y="11" width="3" height="7" rx="1" fill="#22c55e" opacity=".9"/><line x1="15.5" y1="8" x2="15.5" y2="11" stroke="#22c55e" stroke-width="1.2" opacity=".9"/><rect x="19" y="7" width="3" height="11" rx="1" fill="#3b82f6" opacity=".85"/><line x1="20.5" y1="5" x2="20.5" y2="7" stroke="#3b82f6" stroke-width="1.2" opacity=".85"/><polyline points="5.5,18 10.5,13 15.5,14 20.5,10" stroke="#10b981" stroke-width="1.3" fill="none" stroke-linecap="round" opacity=".7"/></svg>
+          <div><div class="pm-mkt-title-text">Market Indicators</div><div class="pm-mkt-title-sub">SPY · VIX · Key Levels</div></div>
         </div>
       </div>
       <table class="pm-mkt-table">
-        <thead>
-          <tr>
-            <th style="width:110px">Instrument</th>
-            <th style="min-width:340px">Key Levels</th>
-            <th>Notes</th>
-          </tr>
-        </thead>
+        <thead><tr><th style="width:110px">Instrument</th><th style="min-width:340px">Key Levels</th><th>Notes</th></tr></thead>
         <tbody>
-          <!-- SPY ROW -->
           <tr id="mktRowSPY">
-            <td>
-              <div class="mkt-sym spy">SPY</div>
-              <div class="mkt-sym-sub" style="color:#1d4ed8;opacity:.5">S&P 500 ETF</div>
-            </td>
-            <td>
-              <div class="mkt-levels-wrap">
-                <div class="mkt-level key-lvl">  <span class="ml-label">Key Level</span><input class="mkt-input" id="spy-key" placeholder="—"></div>
-              </div>
-            </td>
+            <td><div class="mkt-sym spy">SPY</div><div class="mkt-sym-sub" style="color:#1d4ed8;opacity:.5">S&amp;P 500 ETF</div></td>
+            <td><div class="mkt-levels-wrap"><div class="mkt-level key-lvl"><span class="ml-label">Key Level</span><input class="mkt-input" id="spy-key" placeholder="—"></div></div></td>
             <td><input class="mkt-notes-input" id="spy-notes" placeholder="Trend, gap, catalyst…"></td>
           </tr>
-          <!-- VIX ROW -->
           <tr id="mktRowVIX">
-            <td>
-              <div class="mkt-sym vix">VIX</div>
-              <div class="mkt-sym-sub" style="color:#7c3aed;opacity:.5">Volatility Index</div>
-            </td>
-            <td>
-              <div class="mkt-levels-wrap">
-                <div class="mkt-level key-lvl">  <span class="ml-label">Alert Level</span><input class="mkt-input" id="vix-key" placeholder="—"></div>
-              </div>
-            </td>
+            <td><div class="mkt-sym vix">VIX</div><div class="mkt-sym-sub" style="color:#7c3aed;opacity:.5">Volatility Index</div></td>
+            <td><div class="mkt-levels-wrap"><div class="mkt-level key-lvl"><span class="ml-label">Alert Level</span><input class="mkt-input" id="vix-key" placeholder="—"></div></div></td>
             <td><input class="mkt-notes-input" id="vix-notes" placeholder="Fear gauge, trend…"></td>
           </tr>
         </tbody>
       </table>
     </div>
 
-    <!-- TABLE -->
+    <!-- WATCHLIST TABLE -->
     <table class="wl-table">
       <thead>
         <tr>
-          <th style="width:30px"></th><!-- star -->
+          <th style="width:30px"></th>
           <th style="width:110px">Ticker</th>
-          <th style="width:110px">Bias</th>
-          <th style="min-width:180px">Levels</th>
-          <th style="min-width:120px">Setup</th>
-          <th style="min-width:110px">Catalyst</th>
+          <th style="width:120px">Bias</th>
+          <th style="min-width:200px">Levels</th>
+          <th style="min-width:155px">Setup</th>
+          <th style="min-width:145px">Catalyst</th>
           <th style="min-width:160px">EOD Review</th>
           <th style="width:32px"></th>
         </tr>
@@ -1254,12 +1134,8 @@ function switchPage(page){
   target.classList.add('active');
   target.style.display='block';
   document.getElementById('tab-'+page).classList.add('active');
-  // Light body for pre-market, dark for journal
-  if(page==='premarket'){
-    document.body.classList.add('pm-active');
-  } else {
-    document.body.classList.remove('pm-active');
-  }
+  if(page==='premarket'){document.body.classList.add('pm-active');}
+  else{document.body.classList.remove('pm-active');}
 }
 
 // ═══ MIGRATE ═══
@@ -1752,7 +1628,6 @@ function initTilt(){
     card.addEventListener('mouseleave',()=>{card.style.transform='perspective(600px) rotateX(0) rotateY(0) translateZ(0)';card.style.boxShadow='';});
   });
 }
-
 function initCursorGlow(){const glow=$('cursorGlow');document.addEventListener('mousemove',e=>{glow.style.left=e.clientX+'px';glow.style.top=e.clientY+'px'});}
 
 // ═══ KEYBOARD SHORTCUTS ═══
@@ -1772,9 +1647,7 @@ document.addEventListener('keydown',e=>{
 });
 
 // ═══ PRE-MARKET FUNCTIONS ═══
-
 function pmSetBias(v) {
-  // If clicking the already-selected option → deselect (show all 3 again)
   if(pmBias === v) { pmResetBias(); return; }
   pmBias = v;
   const bMap = {bull:'Bull', neutral:'Neut', bear:'Bear'};
@@ -1782,12 +1655,8 @@ function pmSetBias(v) {
     const el = document.getElementById('bias'+id);
     if(!el) return;
     el.className = 'bias-btn';
-    if(key === v) {
-      el.classList.add('active-'+v);
-      el.style.display = '';   // show selected
-    } else {
-      el.style.display = 'none'; // hide unselected
-    }
+    if(key === v) { el.classList.add('active-'+v); el.style.display = ''; }
+    else { el.style.display = 'none'; }
   });
   const panel = document.getElementById('pmBiasPanel');
   if(panel) panel.className = 'pm-bias-panel ' + v;
@@ -1799,7 +1668,6 @@ function pmSetBias(v) {
   }
 }
 
-// Reset bias selector back to show all 3 options
 function pmResetBias() {
   pmBias = 'neutral';
   ['Bull','Neut','Bear'].forEach(id => {
@@ -1812,48 +1680,49 @@ function pmResetBias() {
   if(display) { display.textContent = '— NEUTRAL —'; display.style.color = '#64748b'; }
 }
 
+// ── UPDATED: flat label+input rows, neutral direction ──
 function pmBuildLevelCells(dir) {
-  // dir: 'long' | 'short' | ''
   if(dir === 'long') {
     return `<div class="wl-levels-wrap">
-      <div class="level-mini support"><span class="lm-label">Dip / Supp</span><input class="level-input" placeholder="210.00" data-ltype="support"></div>
-      <div class="level-mini target"><span class="lm-label">PT / Target</span><input class="level-input" placeholder="225.00" data-ltype="target"></div>
-      <div class="level-mini resist"><span class="lm-label">Resistance</span><input class="level-input" placeholder="230.00" data-ltype="resist"></div>
+      <div class="level-row-simple"><span class="lr-label">🟢 Support</span><input class="level-input" placeholder="210.00" data-ltype="support"></div>
+      <div class="level-row-simple"><span class="lr-label">🎯 Target</span><input class="level-input" placeholder="225.00" data-ltype="target"></div>
+      <div class="level-row-simple"><span class="lr-label">🔴 Resist</span><input class="level-input" placeholder="230.00" data-ltype="resist"></div>
     </div>`;
   } else if(dir === 'short') {
     return `<div class="wl-levels-wrap">
-      <div class="level-mini resist"><span class="lm-label">Upside Res</span><input class="level-input" placeholder="230.00" data-ltype="resist"></div>
-      <div class="level-mini downside"><span class="lm-label">Downside PT</span><input class="level-input" placeholder="205.00" data-ltype="downside"></div>
-      <div class="level-mini support"><span class="lm-label">Key Supp</span><input class="level-input" placeholder="198.00" data-ltype="support"></div>
+      <div class="level-row-simple"><span class="lr-label">🔴 Upside</span><input class="level-input" placeholder="230.00" data-ltype="resist"></div>
+      <div class="level-row-simple"><span class="lr-label">🎯 Target</span><input class="level-input" placeholder="205.00" data-ltype="downside"></div>
+      <div class="level-row-simple"><span class="lr-label">🟢 Support</span><input class="level-input" placeholder="198.00" data-ltype="support"></div>
     </div>`;
   } else {
     return `<div class="wl-levels-wrap">
-      <div class="level-mini support"><span class="lm-label">Level 1</span><input class="level-input" placeholder="—" data-ltype="l1"></div>
-      <div class="level-mini target"><span class="lm-label">Level 2</span><input class="level-input" placeholder="—" data-ltype="l2"></div>
+      <div class="level-row-simple"><span class="lr-label">📍 Level 1</span><input class="level-input" placeholder="—" data-ltype="l1"></div>
+      <div class="level-row-simple"><span class="lr-label">📍 Level 2</span><input class="level-input" placeholder="—" data-ltype="l2"></div>
+      <div class="level-row-simple"><span class="lr-label">📍 Level 3</span><input class="level-input" placeholder="—" data-ltype="l3"></div>
     </div>`;
   }
 }
 
 function pmTickerColor(dir) {
-  // Long = deep teal-green, Short = deep crimson-red, neutral = near-black
-  return dir === 'long' ? '#065f46' : dir === 'short' ? '#7f1d1d' : '#0f172a';
+  if(dir === 'long')    return '#065f46';
+  if(dir === 'neutral') return '#334155';
+  if(dir === 'short')   return '#7f1d1d';
+  return '#0f172a';
 }
 
+// ── UPDATED: adds Neutral btn, setup/catalyst as textareas ──
 function pmAddWatchRow(prefill) {
   const tbody = document.getElementById('pmWatchlistBody');
   const tr = document.createElement('tr');
   tr.dataset.focused = '0';
-  const dir = prefill?.direction?.toLowerCase() || '';
+  const dir = (prefill?.direction?.toLowerCase()) || '';
   const tickerColor = pmTickerColor(dir);
-
-  // Direction buttons: show both, but if dir is set hide the other
-  const longDisplay = dir === 'short' ? 'display:none' : '';
-  const shortDisplay = dir === 'long' ? 'display:none' : '';
+  const longDisplay    = (dir==='short'||dir==='neutral') ? 'display:none' : '';
+  const neutralDisplay = (dir==='long'||dir==='short')    ? 'display:none' : '';
+  const shortDisplay   = (dir==='long'||dir==='neutral')  ? 'display:none' : '';
 
   tr.innerHTML = `
-    <td>
-      <button class="focus-star-btn ${prefill?.focus?'starred':''}" onclick="pmToggleFocus(this)" title="Main Focus">⭐</button>
-    </td>
+    <td><button class="focus-star-btn ${prefill?.focus?'starred':''}" onclick="pmToggleFocus(this)" title="Main Focus">⭐</button></td>
     <td>
       <div class="wl-ticker-wrap">
         <input class="wl-ticker-input" placeholder="AAPL" maxlength="10" value="${prefill?.ticker||''}" style="color:${tickerColor}">
@@ -1862,40 +1731,28 @@ function pmAddWatchRow(prefill) {
     </td>
     <td>
       <div class="dir-toggle-new">
-        <span class="dir-btn-new ${dir==='long'?'long-on':''}" style="${longDisplay}" onclick="pmToggleDir(this,'long')">Long</span>
-        <span class="dir-btn-new ${dir==='short'?'short-on':''}" style="${shortDisplay}" onclick="pmToggleDir(this,'short')">Short</span>
+        <span class="dir-btn-new ${dir==='long'?'long-on':''}"    style="${longDisplay}"    onclick="pmToggleDir(this,'long')">Long</span>
+        <span class="dir-btn-new ${dir==='neutral'?'neutral-on':''}" style="${neutralDisplay}" onclick="pmToggleDir(this,'neutral')">Neut</span>
+        <span class="dir-btn-new ${dir==='short'?'short-on':''}"  style="${shortDisplay}"  onclick="pmToggleDir(this,'short')">Short</span>
       </div>
     </td>
-    <td class="wl-levels-td">
-      ${pmBuildLevelCells(dir)}
-    </td>
-    <td>
-      <input class="wl-text-input" placeholder="5/12 curl, PM Hi…" value="${prefill?.setup||''}">
-    </td>
-    <td>
-      <input class="wl-text-input" placeholder="Earnings, news, catalyst…" value="${prefill?.catalyst||''}">
-    </td>
-    <td>
-      <textarea class="wl-eod-input" placeholder="EOD notes…" rows="2">${prefill?.eod||''}</textarea>
-    </td>
-    <td>
-      <button class="wl-del-btn" onclick="this.closest('tr').remove();pmUpdateWlCount()">✕</button>
-    </td>`;
+    <td class="wl-levels-td">${pmBuildLevelCells(dir)}</td>
+    <td><textarea class="wl-text-input" placeholder="5/12 curl, PM Hi break…" rows="2">${prefill?.setup||''}</textarea></td>
+    <td><textarea class="wl-text-input" placeholder="Earnings, news, catalyst…" rows="2">${prefill?.catalyst||''}</textarea></td>
+    <td><textarea class="wl-eod-input" placeholder="EOD notes…" rows="2">${prefill?.eod||''}</textarea></td>
+    <td><button class="wl-del-btn" onclick="this.closest('tr').remove();pmUpdateWlCount()">✕</button></td>`;
 
   tbody.appendChild(tr);
-
-  // Restore saved level values
   if(prefill?.levels && Array.isArray(prefill.levels)) {
     const inputs = tr.querySelectorAll('.level-input');
     prefill.levels.forEach((v,i) => { if(inputs[i]) inputs[i].value = v; });
   }
-
   if(prefill?.focus) pmApplyFocusStyle(tr, true);
-
   pmUpdateWlCount();
   tr.querySelector('.wl-ticker-input').focus();
 }
 
+// ── UPDATED: handles neutral ──
 function pmToggleDir(btn, dir) {
   const row = btn.closest('tr');
   const btns = btn.closest('.dir-toggle-new').querySelectorAll('.dir-btn-new');
@@ -1904,15 +1761,10 @@ function pmToggleDir(btn, dir) {
   const newDir = wasOn ? '' : dir;
   if(!wasOn) {
     btn.classList.add(dir+'-on');
-    // Hide the opposite button
-    btns.forEach(b => {
-      if(!b.classList.contains(dir+'-on')) b.style.display = 'none';
-    });
+    btns.forEach(b => { if(!b.classList.contains(dir+'-on')) b.style.display = 'none'; });
   }
-  // Rebuild level cells
   const td = row.querySelector('.wl-levels-td');
   if(td) td.innerHTML = pmBuildLevelCells(newDir);
-  // Update ticker color for Long/Short
   const tickerInput = row.querySelector('.wl-ticker-input');
   if(tickerInput) tickerInput.style.color = pmTickerColor(newDir);
 }
@@ -1920,27 +1772,17 @@ function pmToggleDir(btn, dir) {
 function pmToggleFocus(btn) {
   const tr = btn.closest('tr');
   const isFocused = btn.classList.contains('starred');
-  // Remove focus from all rows first
   document.querySelectorAll('#pmWatchlistBody tr').forEach(r => {
     pmApplyFocusStyle(r, false);
     const sb = r.querySelector('.focus-star-btn');
     if(sb) sb.classList.remove('starred');
   });
-  // If it wasn't already focused, apply focus to this one
-  if(!isFocused) {
-    btn.classList.add('starred');
-    pmApplyFocusStyle(tr, true);
-  }
+  if(!isFocused) { btn.classList.add('starred'); pmApplyFocusStyle(tr, true); }
 }
 
 function pmApplyFocusStyle(tr, on) {
-  if(on) {
-    tr.classList.add('wl-row-focus');
-    tr.dataset.focused = '1';
-  } else {
-    tr.classList.remove('wl-row-focus');
-    tr.dataset.focused = '0';
-  }
+  if(on) { tr.classList.add('wl-row-focus'); tr.dataset.focused = '1'; }
+  else { tr.classList.remove('wl-row-focus'); tr.dataset.focused = '0'; }
 }
 
 function pmUpdateWlCount() {
@@ -1949,19 +1791,21 @@ function pmUpdateWlCount() {
   if(el) el.textContent = rows + ' Ticker' + (rows !== 1 ? 's' : '');
 }
 
+// ── UPDATED: detects neutral direction, reads textarea values ──
 function pmGetWatchlist() {
   return Array.from(document.querySelectorAll('#pmWatchlistBody tr')).map(tr => {
     const ticker = tr.querySelector('.wl-ticker-input')?.value.trim().toUpperCase();
-    const longBtn = tr.querySelector('.long-on');
-    const shortBtn = tr.querySelector('.short-on');
-    const direction = longBtn ? 'Long' : shortBtn ? 'Short' : '';
+    const longBtn    = tr.querySelector('.long-on');
+    const neutralBtn = tr.querySelector('.neutral-on');
+    const shortBtn   = tr.querySelector('.short-on');
+    const direction  = longBtn ? 'Long' : neutralBtn ? 'Neutral' : shortBtn ? 'Short' : '';
     const levels = Array.from(tr.querySelectorAll('.level-input')).map(i => i.value.trim());
-    const inputs = tr.querySelectorAll('.wl-text-input');
+    const textareas = tr.querySelectorAll('.wl-text-input');
     const eod = tr.querySelector('.wl-eod-input')?.value.trim() || '';
     return {
       ticker, direction, levels,
-      setup: inputs[0]?.value.trim(),
-      catalyst: inputs[1]?.value.trim(),
+      setup: textareas[0]?.value.trim(),
+      catalyst: textareas[1]?.value.trim(),
       eod, focus: tr.dataset.focused === '1'
     };
   }).filter(r => r.ticker);
@@ -1971,10 +1815,7 @@ function pmSavePlan() {
   const planDate = document.getElementById('planDate').value;
   if(!planDate) { showToast('error','No Date','Select a plan date first.'); return; }
   const gv = id => { const el = document.getElementById(id); return el ? el.value.trim() : ''; };
-  const indicators = {
-    spy: { key:gv('spy-key'), notes:gv('spy-notes') },
-    vix: { key:gv('vix-key'), notes:gv('vix-notes') }
-  };
+  const indicators = { spy:{key:gv('spy-key'),notes:gv('spy-notes')}, vix:{key:gv('vix-key'),notes:gv('vix-notes')} };
   const plan = { id:Date.now().toString(36), date:planDate, savedAt:new Date().toISOString(), bias:pmBias, biasReason:document.getElementById('biasReason').value, indicators, watchlist:pmGetWatchlist() };
   const existing = pmPlans.findIndex(p => p.date === planDate);
   if(existing > -1) pmPlans[existing] = plan; else pmPlans.unshift(plan);
@@ -1985,12 +1826,9 @@ function pmSavePlan() {
 
 function pmClearForm() {
   document.getElementById('biasReason').value = '';
-  document.getElementById('biasReason').disabled = false;
   document.getElementById('pmWatchlistBody').innerHTML = '';
-  // Clear market indicators
   ['spy-key','spy-notes','vix-key','vix-notes'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
-  pmResetBias();
-  pmUpdateWlCount();
+  pmResetBias(); pmUpdateWlCount();
   showToast('info','Cleared','Form reset.');
 }
 
@@ -2001,31 +1839,23 @@ function pmLoadPlan(id) {
   pmSetBias(plan.bias || 'neutral');
   document.getElementById('pmWatchlistBody').innerHTML = '';
   (plan.watchlist || []).forEach(w => pmAddWatchRow(w));
-  // Restore market indicators
   const sv = (id, val) => { const el = document.getElementById(id); if(el) el.value = val||''; };
   const ind = plan.indicators || {};
   sv('spy-key',ind.spy?.key); sv('spy-notes',ind.spy?.notes);
   sv('vix-key',ind.vix?.key); sv('vix-notes',ind.vix?.notes);
-  // Locked plans: everything still editable EXCEPT delete (handled by pmDeletePlan)
-  // EOD review always editable — no input-level locks applied on load
   pmUpdateWlCount();
   window.scrollTo({top:0,behavior:'smooth'});
   showToast('info','Plan Loaded', pmFmtDate(plan.date));
 }
 
 function pmPlanIsLocked(plan) {
-  // Lock after 24 hours from save time (or plan date if no savedAt)
   const ref = plan.savedAt ? new Date(plan.savedAt) : new Date(plan.date+'T23:59:59');
   return (Date.now() - ref.getTime()) > 24 * 60 * 60 * 1000;
 }
 
 function pmDeletePlan(id) {
-  const plan = pmPlans.find(p => p.id === id);
-  if(!plan) return;
-  if(pmPlanIsLocked(plan)) {
-    showToast('warning','Plan Locked','Plans are locked 24 hours after saving and cannot be deleted.');
-    return;
-  }
+  const plan = pmPlans.find(p => p.id === id); if(!plan) return;
+  if(pmPlanIsLocked(plan)) { showToast('warning','Plan Locked','Plans are locked 24 hours after saving and cannot be deleted.'); return; }
   if(!confirm('Delete this plan?')) return;
   pmPlans = pmPlans.filter(p => p.id !== id);
   localStorage.setItem('stellium_preplans', JSON.stringify(pmPlans));
@@ -2035,6 +1865,7 @@ function pmDeletePlan(id) {
 
 function pmFmtDate(str) { return new Date(str+'T12:00:00').toLocaleDateString([],{weekday:'short',month:'short',day:'numeric',year:'numeric'}) }
 
+// ── UPDATED: Neutral chip colour ──
 function pmRenderSavedPlans() {
   const el = document.getElementById('savedPlansList');
   const cnt = document.getElementById('pmSavedCount');
@@ -2044,8 +1875,8 @@ function pmRenderSavedPlans() {
   const biasColor = {bull:'#16a34a',neutral:'#64748b',bear:'#dc2626'};
   el.innerHTML = pmPlans.slice(0,20).map(p => {
     const tickers = (p.watchlist||[]).map(w => {
-      const dc = w.direction==='Long'?'rgba(34,197,94,0.15)':w.direction==='Short'?'rgba(239,68,68,0.15)':'rgba(0,255,204,0.08)';
-      const tc = w.direction==='Long'?'#4ade80':w.direction==='Short'?'#f87171':'var(--primary)';
+      const dc = w.direction==='Long'?'rgba(34,197,94,0.15)':w.direction==='Short'?'rgba(239,68,68,0.15)':w.direction==='Neutral'?'rgba(100,116,139,0.12)':'rgba(0,255,204,0.08)';
+      const tc = w.direction==='Long'?'#4ade80':w.direction==='Short'?'#f87171':w.direction==='Neutral'?'#64748b':'var(--primary)';
       const star = w.focus ? '⭐ ' : '';
       return `<span style="background:${dc};border:1px solid ${tc}44;border-radius:5px;padding:2px 8px;font-size:9px;color:${tc};font-family:'JetBrains Mono',monospace;font-weight:800">${star}${w.ticker}${w.direction?' '+w.direction[0]:''}</span>`;
     }).join('');
