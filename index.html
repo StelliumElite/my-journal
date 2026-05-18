@@ -1761,13 +1761,14 @@ function pmToggleDir(btn, dir) {
 
 function pmToggleFocus(btn) {
   const tr = btn.closest('tr');
-  const isFocused = btn.classList.contains('starred');
-  document.querySelectorAll('#pmWatchlistBody tr').forEach(r => {
-    pmApplyFocusStyle(r, false);
-    const sb = r.querySelector('.focus-star-btn');
-    if(sb) sb.classList.remove('starred');
-  });
-  if(!isFocused) { btn.classList.add('starred'); pmApplyFocusStyle(tr, true); }
+  // Toggle independently — multiple rows can be starred simultaneously
+  if(btn.classList.contains('starred')) {
+    btn.classList.remove('starred');
+    pmApplyFocusStyle(tr, false);
+  } else {
+    btn.classList.add('starred');
+    pmApplyFocusStyle(tr, true);
+  }
 }
 
 function pmApplyFocusStyle(tr, on) {
