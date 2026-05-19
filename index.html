@@ -384,8 +384,11 @@ function timeAgo(unix){
 
 // ─── FINNHUB CALLS ────────────────────────────────────────────────────────────
 async function finnhub(path){
-  const res = await fetch(`${FINNHUB_BASE}${path}&token=${finnhubKey}`);
-  if(!res.ok) throw new Error(`Finnhub ${res.status}: ${path}`);
+  // Finnhub: join token correctly whether path has ? or not
+  const sep = path.includes('?') ? '&' : '?';
+  const url = `${FINNHUB_BASE}${path}${sep}token=${finnhubKey}`;
+  const res = await fetch(url, {mode:'cors'});
+  if(!res.ok) throw new Error(`Finnhub ${res.status} — check API key`);
   return res.json();
 }
 
@@ -401,7 +404,7 @@ async function getTickerNews(sym){
     const today = new Date().toISOString().split('T')[0];
     const from  = new Date(Date.now()-86400000*2).toISOString().split('T')[0];
     const data  = await finnhub(`/company-news?symbol=${sym}&from=${from}&to=${today}`);
-    return (data||[]).slice(0,5);
+    return (Array.isArray(data)?data:[]).slice(0,5);
   }catch(e){ return []; }
 }
 
@@ -418,18 +421,24 @@ async function getQuote(sym){
 }
 
 // ─── STOCKTWITS TRENDING ──────────────────────────────────────────────────────
+async function stFetch(url){
+  // Use allorigins CORS proxy for Stocktwits
+  const proxy = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+  const res = await fetch(proxy);
+  const wrapper = await res.json();
+  return JSON.parse(wrapper.contents);
+}
+
 async function getStockwitsTrending(){
   try{
-    const res = await fetch(`${ST_BASE}/trending/symbols.json`);
-    const data = await res.json();
+    const data = await stFetch(`${ST_BASE}/trending/symbols.json`);
     return (data.symbols||[]).map(s=>s.symbol);
-  }catch(e){ return []; }
+  }catch(e){ console.warn('Stocktwits trending failed',e); return []; }
 }
 
 async function getStockwitsSymbol(sym){
   try{
-    const res = await fetch(`${ST_BASE}/streams/symbol/${sym}.json`);
-    const data = await res.json();
+    const data = await stFetch(`${ST_BASE}/streams/symbol/${sym}.json`);
     if(!data.messages) return null;
     const msgs = data.messages.slice(0,20);
     const bull = msgs.filter(m=>m.entities?.sentiment?.basic==='Bullish').length;
@@ -485,14 +494,19 @@ Format as JSON exactly:
   });
 
   if(!res.ok){
-    const err = await res.json();
-    throw new Error(err.error?.message||`Claude API error ${res.status}`);
+    let errMsg = `Claude API error ${res.status}`;
+    try{ const e=await res.json(); errMsg=e.error?.message||errMsg; }catch(_){}
+    throw new Error(errMsg);
   }
 
   const data = await res.json();
-  const text = data.content.map(b=>b.text||'').join('');
-  const clean = text.replace(/```json|```/g,'').trim();
-  return JSON.parse(clean);
+  const text = (data.content||[]).map(b=>b.text||'').join('');
+  // Strip markdown code fences if present
+  const clean = text.replace(/```json[\s\S]*?```|```[\s\S]*?```/g, m=>m.replace(/```json|```/g,'')).trim();
+  // Find JSON object in response
+  const jsonMatch = clean.match(/\{[\s\S]*\}/);
+  if(!jsonMatch) throw new Error('AI returned no valid JSON — try again');
+  return JSON.parse(jsonMatch[0]);
 }
 
 // ─── MAIN SCAN ────────────────────────────────────────────────────────────────
@@ -501,10 +515,21 @@ async function runScan(){
   if(!finnhubKey){ toast('Enter your Finnhub API key first','err'); return; }
 
   const btn = $('scanBtn');
-  btn.disabled=true; btn.textContent='⏳ Scanning…';
+  btn.disabled=true; btn.textContent='⏳ Testing key…';
   setDot('live');
-  $('aiBody').innerHTML = '<div style="color:var(--text3);font-size:13px">🔍 Fetching live data from Finnhub + Stocktwits…</div>';
+  $('aiBody').innerHTML = '<div style="color:var(--text3);font-size:13px">🔍 Testing Finnhub connection…</div>';
   $('newsFeedBox').style.display='none';
+
+  // Quick key validation test
+  try{
+    await finnhub('/stock/profile2?symbol=AAPL');
+  }catch(e){
+    $('aiBody').innerHTML = `<span style="color:var(--red)">⚠ Finnhub key invalid or network error: ${e.message}</span><br><br><span style="color:var(--text3);font-size:12px">Get a free key at <a href="https://finnhub.io" target="_blank" style="color:var(--teal)">finnhub.io</a> → Sign up → Dashboard</span>`;
+    toast('Invalid API key','err'); setDot(''); btn.disabled=false; btn.textContent='⚡ Run Scan'; return;
+  }
+
+  btn.textContent='⏳ Scanning…';
+  $('aiBody').innerHTML = '<div style="color:var(--text3);font-size:13px">🔍 Fetching live data from Finnhub + Stocktwits…</div>';
 
   try{
     // 1. Parallel data fetch
