@@ -635,7 +635,7 @@ body.pm-active #particleCanvas{display:none!important;}
 .pm-bias-panel{
   background:rgba(255,255,255,0.88);
   border:1px solid rgba(0,180,140,0.18);border-radius:12px;
-  padding:12px 16px;position:relative;overflow:hidden;transition:border-color .4s;
+  padding:14px 16px;overflow:hidden;transition:border-color .4s;
   backdrop-filter:blur(16px);
   box-shadow:0 2px 12px rgba(0,0,0,0.07);
   position:sticky;top:8px;
@@ -647,13 +647,13 @@ body.pm-active #particleCanvas{display:none!important;}
 .pm-bias-panel.neutral::before{background:linear-gradient(90deg,#94a3b8,#cbd5e1,#94a3b8)}
 .pm-bias-panel [style*="color:rgba(0,255,204"]{color:rgba(15,118,110,0.8) !important;}
 
-.bias-selector{display:flex;flex-direction:row;gap:6px;margin-bottom:0;}
+.bias-selector{display:flex;flex-direction:row;gap:6px;margin-bottom:0;width:100%;}
 .bias-btn{display:flex;flex-direction:row;align-items:center;justify-content:center;gap:6px;
   padding:6px 14px;border-radius:8px;cursor:pointer;
   border:1.5px solid rgba(0,0,0,0.08);background:rgba(248,250,252,0.9);
   transition:all .2s;user-select:none;box-shadow:0 1px 3px rgba(0,0,0,0.05);text-align:center;}
-.bias-btn .be{font-size:26px;transition:transform .2s;line-height:1;}
-.bias-btn .bl{font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.08em;
+.bias-btn .be{font-size:22px;transition:transform .2s;line-height:1;}
+.bias-btn .bl{font-size:13px;font-weight:900;text-transform:uppercase;letter-spacing:.07em;
   font-family:'JetBrains Mono',monospace;color:#94a3b8;transition:color .2s;}
 .bias-btn:hover{background:#fff;box-shadow:0 3px 10px rgba(0,0,0,0.08);}
 .bias-btn.active-bull{background:rgba(220,252,231,0.95);border-color:rgba(34,197,94,0.55);
@@ -723,7 +723,7 @@ body.pm-active #particleCanvas{display:none!important;}
 }
 .wl-table tbody tr:hover{background:rgba(16,185,129,0.03);}
 .wl-table tbody td{
-  padding:11px 12px;
+  padding:12px 12px;
   vertical-align:middle;
 }
 
@@ -804,11 +804,11 @@ body.pm-active #particleCanvas{display:none!important;}
 .wl-text-input{
   width:100%;background:rgba(255,255,255,0.7);border:1.5px solid rgba(0,0,0,0.09);
   color:#1e293b;border-radius:8px;padding:6px 9px;
-  font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;
-  outline:none;resize:none;line-height:1.5;min-height:38px;
+  font-family:'Inter',sans-serif;font-size:13px;font-weight:500;
+  outline:none;resize:none;line-height:1.55;min-height:42px;
   transition:border-color .18s,box-shadow .18s;
 }
-.wl-text-input::placeholder{color:#b0bec5;font-weight:400;}
+.wl-text-input::placeholder{color:#b0bec5;font-weight:400;font-size:12px;}
 .wl-text-input:focus{border-color:#10b981;box-shadow:0 0 0 2px rgba(16,185,129,0.1);color:#0f172a;background:#fff;}
 
 .wl-del-btn{background:transparent;border:none;color:#d1d5db;cursor:pointer;
@@ -836,11 +836,11 @@ body.pm-active #particleCanvas{display:none!important;}
 .wl-eod-input{
   width:100%;background:rgba(255,251,235,0.7);border:1px solid rgba(245,158,11,0.2);
   color:#1e293b;padding:6px 8px;border-radius:8px;
-  font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;
-  outline:none;resize:none;line-height:1.5;transition:border-color .2s;
-  min-height:38px;
+  font-family:'Inter',sans-serif;font-size:13px;font-weight:500;
+  outline:none;resize:none;line-height:1.55;transition:border-color .2s;
+  min-height:42px;
 }
-.wl-eod-input::placeholder{color:#d1a84a;font-weight:400;}
+.wl-eod-input::placeholder{color:#d1a84a;font-weight:400;font-size:12px;}
 .wl-eod-input:focus{border-color:#f59e0b;background:rgba(255,251,235,0.9);box-shadow:0 0 0 2px rgba(245,158,11,0.1);}
 
 .pm-mkt-panel{
@@ -888,7 +888,7 @@ body.pm-active #particleCanvas{display:none!important;}
 .mkt-notes-input::placeholder{color:#b0bec5;font-weight:400;}
 .mkt-notes-input:focus{color:#0f172a;}
 @media(max-width:960px){
-  .pm-main-grid{grid-template-columns:1fr !important}
+  .pm-main-grid{flex-direction:column !important}
   .wl-levels-wrap{flex-wrap:wrap;}
   #page-premarket{margin:-24px -16px;padding:24px 16px;}
 }
@@ -912,11 +912,11 @@ body.pm-active #particleCanvas{display:none!important;}
 </div>
 
 <!-- ── MAIN GRID ── -->
-<div style="display:grid;grid-template-columns:240px 1fr;gap:10px;align-items:start" class="pm-main-grid">
+<div style="display:flex;gap:12px;align-items:flex-start" class="pm-main-grid">
 
   <!-- LEFT: MARKET BIAS -->
-  <div class="pm-bias-panel" id="pmBiasPanel">
-    <div style="font-size:8px;font-weight:900;text-transform:uppercase;letter-spacing:.15em;color:#0f766e;font-family:'JetBrains Mono',monospace;margin-bottom:8px;display:flex;align-items:center;gap:6px">
+  <div class="pm-bias-panel" id="pmBiasPanel" style="flex:0 0 220px;min-width:220px;">
+    <div style="font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.12em;color:#0f766e;font-family:'JetBrains Mono',monospace;margin-bottom:10px;display:flex;align-items:center;gap:6px">
       <span style="width:5px;height:5px;border-radius:50%;background:#10b981;box-shadow:0 0 6px rgba(16,185,129,0.5);display:inline-block;animation:pulse 2s ease infinite"></span>Market Bias
     </div>
     <div class="bias-selector">
@@ -924,28 +924,28 @@ body.pm-active #particleCanvas{display:none!important;}
       <div class="bias-btn" id="biasNeut" onclick="pmSetBias('neutral')"><span class="be">⚖️</span><span class="bl">Neutral</span></div>
       <div class="bias-btn" id="biasBear" onclick="pmSetBias('bear')"><span class="be">🐻</span><span class="bl">Bear</span></div>
     </div>
-    <div style="font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:#0f766e;font-family:'JetBrains Mono',monospace;margin-bottom:5px;margin-top:8px">Bias Notes</div>
-    <textarea id="biasReason" class="bias-note-input" rows="4" placeholder="Futures gap, macro, key catalysts…&#10;&#10;Key levels to watch&#10;Macro events today…"></textarea>
+    <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.12em;color:#0f766e;font-family:'JetBrains Mono',monospace;margin-bottom:6px;margin-top:10px">Bias Notes</div>
+    <textarea id="biasReason" class="bias-note-input" rows="5" placeholder="Futures gap, macro, key catalysts…&#10;&#10;Key levels to watch&#10;Macro events today…"></textarea>
     <div id="pmBiasDisplay" style="display:none;font-size:12px;font-weight:900;color:#94a3b8;font-family:'JetBrains Mono',monospace;margin-top:4px">— NEUTRAL —</div>
     <div style="margin-top:10px;border-top:1px solid rgba(0,180,140,0.12);padding-top:10px">
-      <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:#0f766e;font-family:'JetBrains Mono',monospace;margin-bottom:7px">📋 Pre-Market Checklist</div>
+      <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.12em;color:#0f766e;font-family:'JetBrains Mono',monospace;margin-bottom:8px">📋 Pre-Market Checklist</div>
       <div id="pmChecklist" style="display:flex;flex-direction:column;gap:5px">
-        <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:12px;color:#475569;font-family:'JetBrains Mono',monospace"><input type="checkbox" style="width:auto;accent-color:#10b981"> Checked futures</label>
-        <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:12px;color:#475569;font-family:'JetBrains Mono',monospace"><input type="checkbox" style="width:auto;accent-color:#10b981"> Reviewed SPY/VIX</label>
-        <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:12px;color:#475569;font-family:'JetBrains Mono',monospace"><input type="checkbox" style="width:auto;accent-color:#10b981"> Set key levels</label>
-        <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:12px;color:#475569;font-family:'JetBrains Mono',monospace"><input type="checkbox" style="width:auto;accent-color:#10b981"> Watchlist ready</label>
-        <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:12px;color:#475569;font-family:'JetBrains Mono',monospace"><input type="checkbox" style="width:auto;accent-color:#10b981"> Risk defined</label>
-        <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:12px;color:#475569;font-family:'JetBrains Mono',monospace"><input type="checkbox" style="width:auto;accent-color:#10b981"> No revenge trading</label>
+        <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:13px;color:#475569;font-family:'Inter',sans-serif"><input type="checkbox" style="width:auto;accent-color:#10b981"> Checked futures</label>
+        <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:13px;color:#475569;font-family:'Inter',sans-serif"><input type="checkbox" style="width:auto;accent-color:#10b981"> Reviewed SPY/VIX</label>
+        <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:13px;color:#475569;font-family:'Inter',sans-serif"><input type="checkbox" style="width:auto;accent-color:#10b981"> Set key levels</label>
+        <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:13px;color:#475569;font-family:'Inter',sans-serif"><input type="checkbox" style="width:auto;accent-color:#10b981"> Watchlist ready</label>
+        <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:13px;color:#475569;font-family:'Inter',sans-serif"><input type="checkbox" style="width:auto;accent-color:#10b981"> Risk defined</label>
+        <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:13px;color:#475569;font-family:'Inter',sans-serif"><input type="checkbox" style="width:auto;accent-color:#10b981"> No revenge trading</label>
       </div>
     </div>
     <div style="margin-top:10px;border-top:1px solid rgba(0,180,140,0.12);padding-top:10px">
-      <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:#0f766e;font-family:'JetBrains Mono',monospace;margin-bottom:6px">🎯 Today's Goals</div>
-      <textarea id="pmGoals" style="width:100%;background:rgba(240,253,244,0.8);border:1.5px solid rgba(16,185,129,0.2);color:#0f172a;padding:7px 10px;border-radius:8px;font-size:12px;font-family:'JetBrains Mono',monospace;resize:none;outline:none;line-height:1.55;min-height:58px" placeholder="Max loss: $&#10;Target: $&#10;Focus on:"></textarea>
+      <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.12em;color:#0f766e;font-family:'JetBrains Mono',monospace;margin-bottom:7px">🎯 Today's Goals</div>
+      <textarea id="pmGoals" style="width:100%;background:rgba(240,253,244,0.8);border:1.5px solid rgba(16,185,129,0.2);color:#0f172a;padding:8px 10px;border-radius:8px;font-size:13px;font-family:'Inter',sans-serif;resize:none;outline:none;line-height:1.6;min-height:80px" placeholder="Max loss: $&#10;Target: $&#10;Focus on:"></textarea>
     </div>
   </div>
 
   <!-- RIGHT: WATCHLIST -->
-  <div class="pm-wl-panel">
+  <div class="pm-wl-panel" style="flex:1;min-width:0;">
     <div class="pm-wl-logo-bar">
       <div class="pm-wl-logo">
         <svg class="wl-svg-logo" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
