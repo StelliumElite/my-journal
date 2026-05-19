@@ -1436,7 +1436,35 @@ function appendRow(body,t,oi,indent=false){
   const dayOpts=['Monday','Tuesday','Wednesday','Thursday','Friday'].map(d=>`<option ${t.day===d?'selected':''}>${d}</option>`).join('');
   const setupVals=['5/12 CURL','5/12 REJECT','34/50 Bounce','34/50 Reject','PM HI Break','PM Low Break','PD CL Bounce','PD CL Fail','PD HI Brko','PD LW Brkdwn','BULL ALRT','EARNINGS','ATH','PHYSC LEVEL'];
   const sBtns=setupVals.map(s=>`<span class="tg-btn ${(t.setups||[]).includes(s)?'on':''}" style="--bc:#6366f1;color:#a5b4fc;min-width:0;flex:none;padding:4px 8px;font-size:9px" data-es="${oi}" data-v="${s}" onclick="this.classList.toggle('on')">${s}</span>`).join('');
-  er.innerHTML=`<td colspan="13" style="padding:14px 16px"><div style="font-size:9px;font-weight:700;color:#6366f1;text-transform:uppercase;letter-spacing:.12em;margin-bottom:10px">✏️ Edit Trade</div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-bottom:10px"><div><div class="field-lbl" style="font-size:8px;margin-bottom:3px">Symbol</div><input type="text" id="es-${oi}" value="${t.stock}" class="sm" style="text-transform:uppercase;width:100%"></div><div><div class="field-lbl" style="font-size:8px;margin-bottom:3px">Type</div><select id="eo-${oi}" class="sm" style="width:100%"><option ${t.option==='CALL'?'selected':''}>CALL</option><option ${t.option==='PUT'?'selected':''}>PUT</option></select></div><div><div class="field-lbl" style="font-size:8px;margin-bottom:3px">Day</div><select id="ed-${oi}" class="sm" style="width:100%">${dayOpts}</select></div><div><div class="field-lbl" style="font-size:8px;margin-bottom:3px">Entry $</div><input type="number" id="ee-${oi}" value="${t.entry}" step=".01" class="sm" style="width:100%"></div><div><div class="field-lbl" style="font-size:8px;margin-bottom:3px">Qty</div><input type="number" id="eq-${oi}" value="${t.totalQty}" min="1" class="sm" style="width:100%"></div><div><div class="field-lbl" style="font-size:8px;margin-bottom:3px">Time</div><input type="text" id="et-${oi}" value="${t.entryTime}" class="sm" style="width:100%"></div></div><div style="margin-bottom:10px"><div class="field-lbl" style="font-size:8px;margin-bottom:4px">Setups</div><div style="display:flex;flex-wrap:wrap;gap:4px">${sBtns}</div></div><div style="display:flex;gap:6px"><button onclick="submitEdit(${oi})" class="btn btn-green-sm">💾 Save</button><button onclick="toggleEdit(${oi})" class="btn btn-red-sm">❌ Cancel</button></div></td>`;
+  // Build exit section — show existing closes + option to add/edit exit
+  const closeSummary = t.closes && t.closes.length
+    ? t.closes.map((c,ci)=>`<div style="display:flex;align-items:center;gap:6px;padding:5px 8px;background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.2);border-radius:6px;font-size:10px;font-family:'JetBrains Mono',monospace"><span style="color:#4ade80;font-weight:700">Close ${ci+1}</span><span>Qty: ${c.qty}</span><span style="color:#4ade80">@ $${parseFloat(c.exitPrice).toFixed(2)}</span><span style="color:#6b7280">${c.exitTime||'--'}</span><span style="color:${parseFloat(c.pnl)>=0?'#4ade80':'#f87171'};font-weight:700">${parseFloat(c.pnl)>=0?'+':''}$${parseFloat(c.pnl).toFixed(2)}</span></div>`).join('')
+    : '';
+  const hasOpen = t.remainingQty > 0;
+  er.innerHTML=`<td colspan="13" style="padding:14px 16px">
+  <div style="font-size:9px;font-weight:700;color:#6366f1;text-transform:uppercase;letter-spacing:.12em;margin-bottom:10px">✏️ Edit Trade</div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-bottom:12px">
+    <div><div class="field-lbl" style="font-size:8px;margin-bottom:3px">Symbol</div><input type="text" id="es-${oi}" value="${t.stock}" class="sm" style="text-transform:uppercase;width:100%"></div>
+    <div><div class="field-lbl" style="font-size:8px;margin-bottom:3px">Type</div><select id="eo-${oi}" class="sm" style="width:100%"><option ${t.option==='CALL'?'selected':''}>CALL</option><option ${t.option==='PUT'?'selected':''}>PUT</option></select></div>
+    <div><div class="field-lbl" style="font-size:8px;margin-bottom:3px">Entry Day</div><select id="ed-${oi}" class="sm" style="width:100%">${dayOpts}</select></div>
+    <div><div class="field-lbl" style="font-size:8px;margin-bottom:3px">Entry $</div><input type="number" id="ee-${oi}" value="${t.entry}" step=".01" class="sm" style="width:100%"></div>
+    <div><div class="field-lbl" style="font-size:8px;margin-bottom:3px">Qty</div><input type="number" id="eq-${oi}" value="${t.totalQty}" min="1" class="sm" style="width:100%"></div>
+    <div><div class="field-lbl" style="font-size:8px;margin-bottom:3px">Entry Time</div><input type="text" id="et-${oi}" value="${t.entryTime}" class="sm" style="width:100%"></div>
+  </div>
+  ${closeSummary ? `<div style="margin-bottom:10px"><div class="field-lbl" style="font-size:8px;margin-bottom:6px">📋 Existing Closes</div><div style="display:flex;flex-wrap:wrap;gap:5px">${closeSummary}</div></div>` : ''}
+  ${hasOpen ? `<div style="border:1.5px solid rgba(34,197,94,0.3);border-radius:10px;padding:12px 14px;margin-bottom:12px;background:rgba(34,197,94,0.04)">
+    <div style="font-size:9px;font-weight:800;color:#4ade80;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px">➕ Log Exit / Close Position</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px">
+      <div><div class="field-lbl" style="font-size:8px;margin-bottom:3px">Exit Price $</div><input type="number" id="exp-${oi}" step=".01" placeholder="0.00" class="sm" style="width:100%;border-color:rgba(34,197,94,0.4)"></div>
+      <div><div class="field-lbl" style="font-size:8px;margin-bottom:3px">Qty to Close</div><input type="number" id="exq-${oi}" value="${t.remainingQty}" min="1" max="${t.remainingQty}" class="sm" style="width:100%"></div>
+      <div><div class="field-lbl" style="font-size:8px;margin-bottom:3px">Exit Day</div><select id="exd-${oi}" class="sm" style="width:100%"><option value="">Select</option><option>Monday</option><option>Tuesday</option><option>Wednesday</option><option>Thursday</option><option>Friday</option></select></div>
+      <div><div class="field-lbl" style="font-size:8px;margin-bottom:3px">Exit Time</div><input type="text" id="ext-${oi}" placeholder="e.g. 10:32 AM" class="sm" style="width:100%"></div>
+    </div>
+    <div style="font-size:9px;color:#6b7280;margin-top:6px">Available: <span style="color:#4ade80;font-weight:700">${t.remainingQty}</span> contracts · Leave Exit Price blank to skip</div>
+  </div>` : ''}
+  <div style="margin-bottom:10px"><div class="field-lbl" style="font-size:8px;margin-bottom:4px">Setups</div><div style="display:flex;flex-wrap:wrap;gap:4px">${sBtns}</div></div>
+  <div style="display:flex;gap:6px"><button onclick="submitEdit(${oi})" class="btn btn-green-sm">💾 Save</button><button onclick="toggleEdit(${oi})" class="btn btn-red-sm">❌ Cancel</button></div>
+  </td>`;
   body.appendChild(er);
 }
 
@@ -1455,14 +1483,47 @@ function submitClose(oi){
   const p=parseFloat(pnl);showToast(p>=0?'pnl-pos':'pnl-neg',p>=0?'Position Closed ✓':'Position Closed',`${t.stock} ${t.option} — ${p>=0?'+':''}${fmt(p)}`);updateTape();
 }
 function submitEdit(oi){
-  const t=trades[oi];const ns=$('es-'+oi).value.trim().toUpperCase(),no=$('eo-'+oi).value,nd=$('ed-'+oi).value;
+  const t=trades[oi];
+  const ns=$('es-'+oi).value.trim().toUpperCase(),no=$('eo-'+oi).value,nd=$('ed-'+oi).value;
   const ne=parseFloat($('ee-'+oi).value),nq=parseInt($('eq-'+oi).value),nt=$('et-'+oi).value.trim();
   if(!ns||isNaN(ne)||ne<=0||isNaN(nq)||nq<1){showToast('error','Validation Error','Fill all required fields.');return}
   const newSetups=Array.from(document.querySelectorAll(`[data-es="${oi}"].on`)).map(b=>b.dataset.v);
   t.stock=ns;t.option=no;t.day=nd;t.entry=ne;t.totalQty=nq;if(t.remainingQty>nq)t.remainingQty=nq;t.entryTime=nt;
   if(newSetups.length)t.setups=newSetups;
-  if(t.closes&&t.closes.length){t.closes=t.closes.map(c=>({...c,pnl:((c.exitPrice-ne)*100*c.qty).toFixed(2)}));const cqd=t.totalQty-t.remainingQty;t.avgExit=t.closes.reduce((s,c)=>s+c.exitPrice*c.qty,0)/(cqd||1);t.realizedPnl=t.closes.reduce((s,c)=>s+parseFloat(c.pnl),0);}
-  openEdit.delete(oi);save();render();showToast('info','Trade Updated',`${ns} position edited.`);
+
+  // ── Handle optional exit close from edit form ──
+  const expEl=$('exp-'+oi);
+  if(expEl){
+    const ep=parseFloat(expEl.value);
+    const exqEl=$('exq-'+oi);
+    const extEl=$('ext-'+oi);
+    const exdEl=$('exd-'+oi);
+    const cq=exqEl?parseInt(exqEl.value)||t.remainingQty:t.remainingQty;
+    const exitTime=extEl?extEl.value.trim():'--';
+    const exitDay=exdEl?exdEl.value:'';
+    if(!isNaN(ep)&&ep>0){
+      if(cq>t.remainingQty){showToast('error','Qty Error',`Max ${t.remainingQty} remaining.`);return}
+      if(!t.closes)t.closes=[];
+      const pnl=((ep-ne)*100*cq).toFixed(2);
+      t.closes.push({qty:cq,exitPrice:ep,exitTime:exitTime||'--',exitDay:exitDay,pnl});
+      t.remainingQty=Math.max(0,t.remainingQty-cq);
+      t.status=t.remainingQty===0?'CLOSED':t.remainingQty===t.totalQty?'OPEN':'PARTIAL';
+      showToast(parseFloat(pnl)>=0?'pnl-pos':'pnl-neg',
+        `${ns} ${no} Closed`,
+        `${cq} contract${cq>1?'s':''} @ $${ep.toFixed(2)} → ${parseFloat(pnl)>=0?'+':''}$${parseFloat(pnl).toFixed(2)}`);
+    }
+  }
+
+  // Recalc avg exit + realized P&L from all closes
+  if(t.closes&&t.closes.length){
+    t.closes=t.closes.map(c=>({...c,pnl:((c.exitPrice-ne)*100*c.qty).toFixed(2)}));
+    const closedQty=t.closes.reduce((s,c)=>s+c.qty,0);
+    t.avgExit=t.closes.reduce((s,c)=>s+c.exitPrice*c.qty,0)/(closedQty||1);
+    t.realizedPnl=t.closes.reduce((s,c)=>s+parseFloat(c.pnl),0);
+  }
+
+  openEdit.delete(oi);save();render();updateTape();
+  showToast('info','Trade Updated',`${ns} position saved.`);
 }
 function delTrade(oi){
   if(isFrozen(trades[oi])){showToast('warning','Frozen','Delete via Import Manager.');return}
