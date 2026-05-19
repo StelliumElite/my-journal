@@ -612,12 +612,12 @@ body.pm-active::before,body.pm-active::after{display:none!important;}
 body.pm-active #particleCanvas{display:none!important;}
 
 .pm-header-bar{
-  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;
-  padding:18px 26px;margin-bottom:18px;
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;
+  padding:7px 16px;margin-bottom:8px;
   background:rgba(255,255,255,0.75);
-  border:1px solid rgba(0,180,140,0.2);border-radius:16px;position:relative;overflow:hidden;
+  border:1px solid rgba(0,180,140,0.2);border-radius:10px;position:relative;overflow:hidden;
   backdrop-filter:blur(12px);
-  box-shadow:0 2px 20px rgba(0,150,120,0.08),0 1px 4px rgba(0,0,0,0.05);
+  box-shadow:0 2px 12px rgba(0,150,120,0.06),0 1px 3px rgba(0,0,0,0.04);
 }
 .pm-header-bar::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;
   background:linear-gradient(90deg,#10b981,#06b6d4,#6366f1,#8b5cf6);}
@@ -634,10 +634,10 @@ body.pm-active #particleCanvas{display:none!important;}
 
 .pm-bias-panel{
   background:rgba(255,255,255,0.8);
-  border:1px solid rgba(0,180,140,0.18);border-radius:16px;
-  padding:22px;position:relative;overflow:hidden;transition:border-color .4s;
+  border:1px solid rgba(0,180,140,0.18);border-radius:10px;
+  padding:8px 14px;position:relative;overflow:hidden;transition:border-color .4s;
   backdrop-filter:blur(16px);
-  box-shadow:0 2px 16px rgba(0,0,0,0.06);
+  box-shadow:0 2px 10px rgba(0,0,0,0.05);
 }
 .pm-bias-panel::before{content:'';position:absolute;top:0;left:0;right:0;height:2.5px;transition:background .4s;
   background:rgba(0,0,0,0.06);}
@@ -646,15 +646,15 @@ body.pm-active #particleCanvas{display:none!important;}
 .pm-bias-panel.neutral::before{background:linear-gradient(90deg,#94a3b8,#cbd5e1,#94a3b8)}
 .pm-bias-panel [style*="color:rgba(0,255,204"]{color:rgba(15,118,110,0.8) !important;}
 
-.bias-selector{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:18px;}
-.bias-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
-  padding:26px 12px;border-radius:14px;cursor:pointer;
+.bias-selector{display:flex;flex-direction:row;gap:6px;margin-bottom:0;}
+.bias-btn{display:flex;flex-direction:row;align-items:center;justify-content:center;gap:6px;
+  padding:6px 14px;border-radius:8px;cursor:pointer;
   border:1.5px solid rgba(0,0,0,0.08);background:rgba(248,250,252,0.9);
-  transition:all .2s;user-select:none;box-shadow:0 1px 4px rgba(0,0,0,0.05);text-align:center;}
-.bias-btn .be{font-size:40px;transition:transform .2s;line-height:1;}
-.bias-btn .bl{font-size:13px;font-weight:900;text-transform:uppercase;letter-spacing:.1em;
+  transition:all .2s;user-select:none;box-shadow:0 1px 3px rgba(0,0,0,0.05);text-align:center;}
+.bias-btn .be{font-size:18px;transition:transform .2s;line-height:1;}
+.bias-btn .bl{font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.08em;
   font-family:'JetBrains Mono',monospace;color:#94a3b8;transition:color .2s;}
-.bias-btn:hover{background:#fff;transform:translateY(-2px);box-shadow:0 6px 18px rgba(0,0,0,0.1);}
+.bias-btn:hover{background:#fff;box-shadow:0 3px 10px rgba(0,0,0,0.08);}
 .bias-btn.active-bull{background:rgba(220,252,231,0.95);border-color:rgba(34,197,94,0.55);
   box-shadow:0 4px 20px rgba(34,197,94,0.18);}
 .bias-btn.active-bull .bl{color:#16a34a;}.bias-btn.active-bull .be{transform:scale(1.12);}
@@ -666,18 +666,17 @@ body.pm-active #particleCanvas{display:none!important;}
 
 .bias-note-input{
   width:100%;
-  background:linear-gradient(135deg,rgba(240,253,244,0.95),rgba(236,253,245,0.9));
+  background:rgba(240,253,244,0.95);
   border:1.5px solid rgba(16,185,129,0.25);
-  color:#0f172a;padding:13px 14px;border-radius:12px;
-  font-size:14px;font-weight:700;font-family:'JetBrains Mono',monospace;
-  resize:none;outline:none;transition:all .2s;line-height:1.7;
-  box-shadow:0 2px 8px rgba(16,185,129,0.08);
+  color:#0f172a;padding:6px 10px;border-radius:8px;
+  font-size:12px;font-weight:600;font-family:'JetBrains Mono',monospace;
+  resize:none;outline:none;transition:all .2s;line-height:1.5;
   letter-spacing:.01em;
 }
-.bias-note-input::placeholder{color:rgba(16,185,129,0.35);font-weight:400;font-size:13px;}
+.bias-note-input::placeholder{color:rgba(16,185,129,0.4);font-weight:400;font-size:11px;}
 .bias-note-input:focus{
   border-color:rgba(16,185,129,0.5);
-  box-shadow:0 0 0 3px rgba(16,185,129,0.12),0 2px 12px rgba(16,185,129,0.1);
+  box-shadow:0 0 0 2px rgba(16,185,129,0.1);
   background:rgba(240,253,244,1);
 }
 #pmBiasIndicator{background:rgba(248,250,252,0.8) !important;border:1px solid rgba(0,0,0,0.07) !important;}
@@ -694,13 +693,13 @@ body.pm-active #particleCanvas{display:none!important;}
 
 .pm-wl-logo-bar{
   display:flex;align-items:center;justify-content:space-between;
-  padding:16px 20px 14px;border-bottom:1px solid rgba(0,0,0,0.06);
+  padding:7px 14px;border-bottom:1px solid rgba(0,0,0,0.06);
   background:rgba(248,250,252,0.5);
 }
 .pm-wl-logo{display:flex;align-items:center;gap:12px;}
-.wl-svg-logo{width:34px;height:34px;flex-shrink:0;}
+.wl-svg-logo{width:24px;height:24px;flex-shrink:0;}
 .pm-wl-brand{display:flex;flex-direction:column;}
-.pm-wl-brand-name{font-size:13px;font-weight:900;color:#0f172a;font-family:'JetBrains Mono',monospace;letter-spacing:.03em;line-height:1;}
+.pm-wl-brand-name{font-size:11px;font-weight:900;color:#0f172a;font-family:'JetBrains Mono',monospace;letter-spacing:.03em;line-height:1;}
 .pm-wl-brand-sub{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.16em;color:#0f766e;margin-top:3px;}
 .pm-wl-meta{display:flex;align-items:center;gap:10px;}
 .pm-wl-count-badge{
@@ -713,8 +712,8 @@ body.pm-active #particleCanvas{display:none!important;}
 
 .wl-table{width:100%;border-collapse:collapse;}
 .wl-table thead th{
-  padding:12px 16px;text-align:left;font-size:11px;font-weight:900;text-transform:uppercase;
-  letter-spacing:.1em;color:#1e293b;font-family:'JetBrains Mono',monospace;
+  padding:7px 12px;text-align:left;font-size:10px;font-weight:900;text-transform:uppercase;
+  letter-spacing:.08em;color:#1e293b;font-family:'JetBrains Mono',monospace;
   border-bottom:2px solid rgba(0,0,0,0.1);background:rgba(241,245,249,0.85);white-space:nowrap;
 }
 .wl-table tbody tr{
@@ -723,7 +722,7 @@ body.pm-active #particleCanvas{display:none!important;}
 }
 .wl-table tbody tr:hover{background:rgba(16,185,129,0.03);}
 .wl-table tbody td{
-  padding:18px 16px;
+  padding:8px 12px;
   vertical-align:middle;
 }
 
@@ -741,8 +740,8 @@ body.pm-active #particleCanvas{display:none!important;}
 }
 
 .focus-star-btn{
-  background:transparent;border:none;cursor:pointer;font-size:18px;
-  padding:2px 4px;transition:all .2s;filter:grayscale(1);opacity:.18;line-height:1;display:block;
+  background:transparent;border:none;cursor:pointer;font-size:14px;
+  padding:1px 3px;transition:all .2s;filter:grayscale(1);opacity:.18;line-height:1;display:block;
 }
 .focus-star-btn:hover{filter:grayscale(0);opacity:1;transform:scale(1.2);}
 .focus-star-btn.starred{filter:grayscale(0);opacity:1;animation:starPop .3s ease;}
@@ -752,10 +751,10 @@ body.pm-active #particleCanvas{display:none!important;}
 .wl-ticker-input{
   background:transparent;border:none;
   color:#0f172a;
-  font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:900;
-  text-transform:uppercase;outline:none;letter-spacing:.04em;padding:0;width:110px;
+  font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:900;
+  text-transform:uppercase;outline:none;letter-spacing:.04em;padding:0;width:90px;
 }
-.wl-ticker-input::placeholder{color:#94a3b8;font-weight:400;font-size:15px;}
+.wl-ticker-input::placeholder{color:#94a3b8;font-weight:400;font-size:12px;}
 .wl-focus-badge{
   display:none;padding:2px 8px;border-radius:4px;width:fit-content;
   background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.28);
@@ -766,8 +765,8 @@ body.pm-active #particleCanvas{display:none!important;}
 
 .dir-toggle-new{display:flex;gap:4px;flex-wrap:wrap;}
 .dir-btn-new{
-  padding:6px 12px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;
-  border-radius:7px;cursor:pointer;font-family:'JetBrains Mono',monospace;
+  padding:4px 9px;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;
+  border-radius:6px;cursor:pointer;font-family:'JetBrains Mono',monospace;
   border:1px solid rgba(0,0,0,0.1);background:rgba(248,250,252,0.9);
   color:#94a3b8;transition:all .16s;
 }
@@ -780,23 +779,23 @@ body.pm-active #particleCanvas{display:none!important;}
   font-weight:900;box-shadow:0 2px 6px rgba(239,68,68,0.1);}
 
 .wl-levels-wrap{
-  display:flex;flex-direction:column;gap:6px;min-width:200px;
+  display:flex;flex-direction:column;gap:3px;min-width:180px;
 }
 .level-row-simple{
   display:flex;align-items:center;gap:8px;
 }
 .level-row-simple .lr-label{
-  font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;
-  font-family:'JetBrains Mono',monospace;color:#64748b;white-space:nowrap;min-width:82px;
+  font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;
+  font-family:'JetBrains Mono',monospace;color:#64748b;white-space:nowrap;min-width:70px;
 }
 .level-row-simple .lr-supp{color:#15803d;}
 .level-row-simple .lr-res {color:#b91c1c;}
 .level-row-simple .lr-tgt {color:#1d4ed8;}
 .level-input{
   background:rgba(248,250,252,0.95);border:1.5px solid rgba(0,0,0,0.09);
-  border-radius:7px;padding:5px 10px;outline:none;
-  font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;
-  color:#1e293b;width:92px;transition:border-color .18s,box-shadow .18s;
+  border-radius:6px;padding:3px 8px;outline:none;
+  font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;
+  color:#1e293b;width:82px;transition:border-color .18s,box-shadow .18s;
 }
 .level-input:focus{border-color:#10b981;box-shadow:0 0 0 2px rgba(16,185,129,0.12);}
 .level-input::placeholder{color:#cbd5e1;font-weight:400;font-size:12px;}
@@ -805,18 +804,18 @@ body.pm-active #particleCanvas{display:none!important;}
   width:100%;background:rgba(255,255,255,0.7);border:1.5px solid rgba(0,0,0,0.09);
   color:#1e293b;border-radius:8px;padding:6px 9px;
   font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;
-  outline:none;resize:none;line-height:1.55;min-height:46px;
+  outline:none;resize:none;line-height:1.4;min-height:34px;
   transition:border-color .18s,box-shadow .18s;
 }
 .wl-text-input::placeholder{color:#b0bec5;font-weight:400;}
 .wl-text-input:focus{border-color:#10b981;box-shadow:0 0 0 2px rgba(16,185,129,0.1);color:#0f172a;background:#fff;}
 
 .wl-del-btn{background:transparent;border:none;color:#d1d5db;cursor:pointer;
-  font-size:14px;padding:4px 6px;border-radius:5px;transition:all .15s;line-height:1;display:block;}
+  font-size:11px;padding:2px 4px;border-radius:4px;transition:all .15s;line-height:1;display:block;}
 .wl-del-btn:hover{color:#ef4444;background:rgba(239,68,68,0.07);}
 
 .pm-add-row-btn{
-  display:flex;align-items:center;justify-content:center;gap:7px;width:100%;padding:13px;
+  display:flex;align-items:center;justify-content:center;gap:7px;width:100%;padding:7px;
   background:transparent;border:none;border-top:1px solid rgba(0,0,0,0.05);
   color:rgba(16,185,129,0.45);cursor:pointer;font-size:10px;font-weight:900;
   font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.12em;transition:all .2s;
@@ -824,7 +823,7 @@ body.pm-active #particleCanvas{display:none!important;}
 .pm-add-row-btn:hover{color:#059669;background:rgba(16,185,129,0.035);}
 
 .pm-saved-strip{
-  border:1px solid rgba(0,0,0,0.07);border-radius:11px;padding:11px 16px;margin-bottom:7px;
+  border:1px solid rgba(0,0,0,0.07);border-radius:8px;padding:7px 12px;margin-bottom:5px;
   display:flex;align-items:center;gap:14px;flex-wrap:wrap;
   background:rgba(255,255,255,0.7);animation:pmSlideIn .3s ease;
   box-shadow:0 1px 4px rgba(0,0,0,0.04);
@@ -837,8 +836,8 @@ body.pm-active #particleCanvas{display:none!important;}
   width:100%;background:rgba(255,251,235,0.7);border:1px solid rgba(245,158,11,0.2);
   color:#1e293b;padding:6px 8px;border-radius:8px;
   font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;
-  outline:none;resize:none;line-height:1.5;transition:border-color .2s;
-  min-height:48px;
+  outline:none;resize:none;line-height:1.4;transition:border-color .2s;
+  min-height:34px;
 }
 .wl-eod-input::placeholder{color:#d1a84a;font-weight:400;}
 .wl-eod-input:focus{border-color:#f59e0b;background:rgba(255,251,235,0.9);box-shadow:0 0 0 2px rgba(245,158,11,0.1);}
@@ -848,7 +847,7 @@ body.pm-active #particleCanvas{display:none!important;}
   border:1px solid rgba(0,180,140,0.18);border-radius:16px;overflow:hidden;position:relative;
   backdrop-filter:blur(16px);
   box-shadow:0 2px 16px rgba(0,0,0,0.06);
-  margin-bottom:14px;
+  margin-bottom:6px;
 }
 .pm-mkt-panel::before{
   content:'';position:absolute;top:0;left:0;right:0;height:3px;
@@ -856,7 +855,7 @@ body.pm-active #particleCanvas{display:none!important;}
 }
 .pm-mkt-header{
   display:flex;align-items:center;justify-content:space-between;
-  padding:14px 20px 12px;border-bottom:2px solid rgba(0,0,0,0.08);
+  padding:7px 14px;border-bottom:1px solid rgba(0,0,0,0.07);
   background:rgba(241,245,249,0.85);
 }
 .pm-mkt-title{display:flex;align-items:center;gap:10px;}
@@ -866,9 +865,9 @@ body.pm-active #particleCanvas{display:none!important;}
 .pm-mkt-table thead th{padding:12px 16px;text-align:left;font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.1em;color:#1e293b;font-family:'JetBrains Mono',monospace;border-bottom:2px solid rgba(0,0,0,0.1);background:rgba(241,245,249,0.85);white-space:nowrap;}
 .pm-mkt-table tbody tr{border-bottom:1px solid rgba(0,0,0,0.05);transition:background .12s;}
 .pm-mkt-table tbody tr:hover{background:rgba(59,130,246,0.025);}
-.pm-mkt-table tbody td{padding:16px 16px;vertical-align:middle;}
+.pm-mkt-table tbody td{padding:7px 12px;vertical-align:middle;}
 
-.mkt-sym{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:900;letter-spacing:.03em;line-height:1;}
+.mkt-sym{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:900;letter-spacing:.03em;line-height:1;}
 .mkt-sym.spy{color:#1d4ed8;}
 .mkt-sym.vix{color:#7c3aed;}
 .mkt-sym-sub{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-top:3px;font-family:'JetBrains Mono',monospace;opacity:.5;}
@@ -901,22 +900,22 @@ body.pm-active #particleCanvas{display:none!important;}
       <div style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.2em;color:#0f766e;font-family:'JetBrains Mono',monospace;margin-bottom:5px">Pre-Market Plan</div>
       <div style="display:flex;align-items:center;gap:10px">
         <input type="date" id="planDate" class="pm-date-input">
-        <div id="pmDayLabel" style="font-size:17px;font-weight:900;color:#0f766e;font-family:'JetBrains Mono',monospace;letter-spacing:-.01em"></div>
+        <div id="pmDayLabel" style="font-size:14px;font-weight:900;color:#0f766e;font-family:'JetBrains Mono',monospace;letter-spacing:-.01em"></div>
       </div>
     </div>
   </div>
   <div style="display:flex;gap:10px;align-items:center;position:relative;z-index:1">
-    <button onclick="pmSavePlan()" style="display:inline-flex;align-items:center;gap:7px;background:linear-gradient(135deg,#10b981,#059669);color:#fff;padding:11px 24px;border:none;border-radius:10px;cursor:pointer;font-size:11px;font-weight:900;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.1em;transition:all .2s;box-shadow:0 4px 14px rgba(16,185,129,0.3)" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 24px rgba(16,185,129,0.4)'" onmouseout="this.style.transform='';this.style.boxShadow='0 4px 14px rgba(16,185,129,0.3)'">💾 Save Plan</button>
-    <button onclick="pmClearForm()" style="display:inline-flex;align-items:center;gap:7px;background:#fff;border:1.5px solid rgba(0,0,0,0.12);color:#64748b;padding:10px 18px;border-radius:10px;cursor:pointer;font-size:11px;font-weight:700;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.08em;transition:all .2s" onmouseover="this.style.borderColor='#10b981';this.style.color='#059669'" onmouseout="this.style.borderColor='rgba(0,0,0,0.12)';this.style.color='#64748b'">↺ Clear</button>
+    <button onclick="pmSavePlan()" style="display:inline-flex;align-items:center;gap:5px;background:linear-gradient(135deg,#10b981,#059669);color:#fff;padding:6px 16px;border:none;border-radius:8px;cursor:pointer;font-size:10px;font-weight:900;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.08em;transition:all .2s;box-shadow:0 3px 10px rgba(16,185,129,0.3)">💾 Save</button>
+    <button onclick="pmClearForm()" style="display:inline-flex;align-items:center;gap:5px;background:#fff;border:1.5px solid rgba(0,0,0,0.12);color:#64748b;padding:5px 12px;border-radius:8px;cursor:pointer;font-size:10px;font-weight:700;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.06em;transition:all .2s" onmouseover="this.style.borderColor='#10b981';this.style.color='#059669'" onmouseout="this.style.borderColor='rgba(0,0,0,0.12)';this.style.color='#64748b'">↺ Clear</button>
   </div>
 </div>
 
 <!-- ── MAIN GRID ── -->
-<div style="display:grid;grid-template-columns:300px 1fr;gap:18px;align-items:start" class="pm-main-grid">
+<div style="display:grid;grid-template-columns:260px 1fr;gap:10px;align-items:start" class="pm-main-grid">
 
   <!-- LEFT: MARKET BIAS -->
   <div class="pm-bias-panel" id="pmBiasPanel">
-    <div style="font-size:8px;font-weight:900;text-transform:uppercase;letter-spacing:.22em;color:#0f766e;font-family:'JetBrains Mono',monospace;margin-bottom:18px;display:flex;align-items:center;gap:7px">
+    <div style="font-size:8px;font-weight:900;text-transform:uppercase;letter-spacing:.18em;color:#0f766e;font-family:'JetBrains Mono',monospace;margin-bottom:6px;display:flex;align-items:center;gap:6px">
       <span style="width:5px;height:5px;border-radius:50%;background:#10b981;box-shadow:0 0 6px rgba(16,185,129,0.5);display:inline-block;animation:pulse 2s ease infinite"></span>Market Bias
     </div>
     <div class="bias-selector">
@@ -924,13 +923,9 @@ body.pm-active #particleCanvas{display:none!important;}
       <div class="bias-btn" id="biasNeut" onclick="pmSetBias('neutral')"><span class="be">⚖️</span><span class="bl">Neutral</span></div>
       <div class="bias-btn" id="biasBear" onclick="pmSetBias('bear')"><span class="be">🐻</span><span class="bl">Bear</span></div>
     </div>
-    <div style="font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:#0f766e;font-family:'JetBrains Mono',monospace;margin-bottom:7px">Bias Notes</div>
-    <textarea id="biasReason" class="bias-note-input" rows="5" placeholder="Futures gap, macro, key catalysts…"></textarea>
-    <div style="margin-top:14px;padding:12px 14px;border-radius:10px;background:rgba(248,250,252,0.9);border:1px solid rgba(0,0,0,0.07);text-align:center;position:relative">
-      <div style="font-size:8px;color:#94a3b8;text-transform:uppercase;letter-spacing:.12em;font-family:'JetBrains Mono',monospace;margin-bottom:5px">Today's Stance</div>
-      <div id="pmBiasDisplay" style="font-size:18px;font-weight:900;color:#94a3b8;font-family:'JetBrains Mono',monospace;letter-spacing:.04em">— NEUTRAL —</div>
-      <div style="font-size:9px;color:#cbd5e1;font-family:'JetBrains Mono',monospace;margin-top:6px;letter-spacing:.05em">tap icon again to change</div>
-    </div>
+    <div style="font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:#0f766e;font-family:'JetBrains Mono',monospace;margin-bottom:4px;margin-top:6px">Bias Notes</div>
+    <textarea id="biasReason" class="bias-note-input" rows="2" placeholder="Futures gap, macro, key catalysts…"></textarea>
+    <div id="pmBiasDisplay" style="display:none;font-size:12px;font-weight:900;color:#94a3b8;font-family:'JetBrains Mono',monospace;margin-top:4px">— NEUTRAL —</div>
   </div>
 
   <!-- RIGHT: WATCHLIST -->
@@ -1009,7 +1004,7 @@ body.pm-active #particleCanvas{display:none!important;}
 </div>
 
 <!-- ── SAVED PLANS ── -->
-<div style="margin-top:20px;background:rgba(255,255,255,0.75);border:1px solid rgba(0,0,0,0.08);border-radius:16px;overflow:hidden;position:relative;box-shadow:0 2px 12px rgba(0,0,0,0.06);">
+<div style="margin-top:8px;background:rgba(255,255,255,0.75);border:1px solid rgba(0,0,0,0.08);border-radius:16px;overflow:hidden;position:relative;box-shadow:0 2px 12px rgba(0,0,0,0.06);">
   <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#f59e0b,#f97316,#f59e0b)"></div>
   <div style="padding:14px 22px;border-bottom:1px solid rgba(0,0,0,0.06);display:flex;align-items:center;justify-content:space-between;background:rgba(255,251,235,0.5)">
     <div style="font-size:8px;font-weight:900;text-transform:uppercase;letter-spacing:.2em;color:#b45309;font-family:'JetBrains Mono',monospace;display:flex;align-items:center;gap:7px">
