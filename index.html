@@ -1452,16 +1452,16 @@ function appendRow(body,t,oi,indent=false){
     <div><div class="field-lbl" style="font-size:8px;margin-bottom:3px">Entry Time</div><input type="text" id="et-${oi}" value="${t.entryTime}" class="sm" style="width:100%"></div>
   </div>
   ${closeSummary ? `<div style="margin-bottom:10px"><div class="field-lbl" style="font-size:8px;margin-bottom:6px">📋 Existing Closes</div><div style="display:flex;flex-wrap:wrap;gap:5px">${closeSummary}</div></div>` : ''}
-  ${hasOpen ? `<div style="border:1.5px solid rgba(34,197,94,0.3);border-radius:10px;padding:12px 14px;margin-bottom:12px;background:rgba(34,197,94,0.04)">
-    <div style="font-size:9px;font-weight:800;color:#4ade80;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px">➕ Log Exit / Close Position</div>
+  <div style="border:1.5px solid rgba(34,197,94,0.3);border-radius:10px;padding:12px 14px;margin-bottom:12px;background:rgba(34,197,94,0.04)">
+    <div style="font-size:9px;font-weight:800;color:#4ade80;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px">${hasOpen ? '➕ Log Exit / Close Position' : '✏️ Edit Exit Price'}</div>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px">
-      <div><div class="field-lbl" style="font-size:8px;margin-bottom:3px">Exit Price $</div><input type="number" id="exp-${oi}" step=".01" placeholder="0.00" class="sm" style="width:100%;border-color:rgba(34,197,94,0.4)"></div>
-      <div><div class="field-lbl" style="font-size:8px;margin-bottom:3px">Qty to Close</div><input type="number" id="exq-${oi}" value="${t.remainingQty}" min="1" max="${t.remainingQty}" class="sm" style="width:100%"></div>
+      <div><div class="field-lbl" style="font-size:8px;margin-bottom:3px">Exit Price $</div><input type="number" id="exp-${oi}" step=".01" placeholder="0.00" value="${t.avgExit>0?t.avgExit:''}" class="sm" style="width:100%;border-color:rgba(34,197,94,0.4)"></div>
+      <div><div class="field-lbl" style="font-size:8px;margin-bottom:3px">${hasOpen ? 'Qty to Close' : 'Qty Closed'}</div><input type="number" id="exq-${oi}" value="${hasOpen ? t.remainingQty : t.totalQty-t.remainingQty}" min="1" max="${t.totalQty}" class="sm" style="width:100%"></div>
       <div><div class="field-lbl" style="font-size:8px;margin-bottom:3px">Exit Day</div><select id="exd-${oi}" class="sm" style="width:100%"><option value="">Select</option><option>Monday</option><option>Tuesday</option><option>Wednesday</option><option>Thursday</option><option>Friday</option></select></div>
-      <div><div class="field-lbl" style="font-size:8px;margin-bottom:3px">Exit Time</div><input type="text" id="ext-${oi}" placeholder="e.g. 10:32 AM" class="sm" style="width:100%"></div>
+      <div><div class="field-lbl" style="font-size:8px;margin-bottom:3px">Exit Time</div><input type="text" id="ext-${oi}" value="${t.closes&&t.closes[0]?t.closes[0].exitTime:''}" placeholder="e.g. 10:32 AM" class="sm" style="width:100%"></div>
     </div>
-    <div style="font-size:9px;color:#6b7280;margin-top:6px">Available: <span style="color:#4ade80;font-weight:700">${t.remainingQty}</span> contracts · Leave Exit Price blank to skip</div>
-  </div>` : ''}
+    <div style="font-size:9px;color:#6b7280;margin-top:6px">${hasOpen ? `Available: <span style="color:#4ade80;font-weight:700">${t.remainingQty}</span> open · Leave Exit Price blank to skip` : `Updating exit will recalculate P&amp;L · Leave blank to keep existing`}</div>
+  </div>
   <div style="margin-bottom:10px"><div class="field-lbl" style="font-size:8px;margin-bottom:4px">Setups</div><div style="display:flex;flex-wrap:wrap;gap:4px">${sBtns}</div></div>
   <div style="display:flex;gap:6px"><button onclick="submitEdit(${oi})" class="btn btn-green-sm">💾 Save</button><button onclick="toggleEdit(${oi})" class="btn btn-red-sm">❌ Cancel</button></div>
   </td>`;
@@ -1491,26 +1491,42 @@ function submitEdit(oi){
   t.stock=ns;t.option=no;t.day=nd;t.entry=ne;t.totalQty=nq;if(t.remainingQty>nq)t.remainingQty=nq;t.entryTime=nt;
   if(newSetups.length)t.setups=newSetups;
 
-  // ── Handle optional exit close from edit form ──
+  // ── Handle exit price from edit form ──
   const expEl=$('exp-'+oi);
   if(expEl){
     const ep=parseFloat(expEl.value);
     const exqEl=$('exq-'+oi);
     const extEl=$('ext-'+oi);
     const exdEl=$('exd-'+oi);
-    const cq=exqEl?parseInt(exqEl.value)||t.remainingQty:t.remainingQty;
     const exitTime=extEl?extEl.value.trim():'--';
     const exitDay=exdEl?exdEl.value:'';
     if(!isNaN(ep)&&ep>0){
-      if(cq>t.remainingQty){showToast('error','Qty Error',`Max ${t.remainingQty} remaining.`);return}
+      const cq=exqEl?parseInt(exqEl.value)||1:1;
       if(!t.closes)t.closes=[];
-      const pnl=((ep-ne)*100*cq).toFixed(2);
-      t.closes.push({qty:cq,exitPrice:ep,exitTime:exitTime||'--',exitDay:exitDay,pnl});
-      t.remainingQty=Math.max(0,t.remainingQty-cq);
-      t.status=t.remainingQty===0?'CLOSED':t.remainingQty===t.totalQty?'OPEN':'PARTIAL';
-      showToast(parseFloat(pnl)>=0?'pnl-pos':'pnl-neg',
-        `${ns} ${no} Closed`,
-        `${cq} contract${cq>1?'s':''} @ $${ep.toFixed(2)} → ${parseFloat(pnl)>=0?'+':''}$${parseFloat(pnl).toFixed(2)}`);
+      if(t.remainingQty===0&&t.closes.length>0){
+        // Trade already closed — update the last close's exit price & qty
+        const lastClose=t.closes[t.closes.length-1];
+        const oldQty=lastClose.qty;
+        lastClose.exitPrice=ep;
+        lastClose.qty=cq;
+        lastClose.exitTime=exitTime||lastClose.exitTime||'--';
+        if(exitDay) lastClose.exitDay=exitDay;
+        lastClose.pnl=((ep-ne)*100*cq).toFixed(2);
+        // Adjust remainingQty if qty changed
+        t.remainingQty=Math.max(0,t.totalQty-t.closes.reduce((s,c)=>s+c.qty,0));
+        t.status=t.remainingQty===0?'CLOSED':t.remainingQty===t.totalQty?'OPEN':'PARTIAL';
+        showToast('info','Exit Updated',`${ns} ${no} exit → $${ep.toFixed(2)} · P&L recalculated`);
+      } else if(t.remainingQty>0){
+        // Open trade — log a new close
+        const maxClose=Math.min(cq,t.remainingQty);
+        const pnl=((ep-ne)*100*maxClose).toFixed(2);
+        t.closes.push({qty:maxClose,exitPrice:ep,exitTime:exitTime||'--',exitDay:exitDay,pnl});
+        t.remainingQty=Math.max(0,t.remainingQty-maxClose);
+        t.status=t.remainingQty===0?'CLOSED':t.remainingQty===t.totalQty?'OPEN':'PARTIAL';
+        showToast(parseFloat(pnl)>=0?'pnl-pos':'pnl-neg',
+          `${ns} ${no} Closed`,
+          `${maxClose} contract${maxClose>1?'s':''} @ $${ep.toFixed(2)} → ${parseFloat(pnl)>=0?'+':''}$${parseFloat(pnl).toFixed(2)}`);
+      }
     }
   }
 
